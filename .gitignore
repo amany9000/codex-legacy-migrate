@@ -1,9 +1,5 @@
+.DS_Store
 node_modules/
 .env
-*.log
-dist/
-.claude/
-site/
-.npm-cache/
-.tmp-mkdocs-site/
-specs/
+.env.*
+!.env.example
