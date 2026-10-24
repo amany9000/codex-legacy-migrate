@@ -29,6 +29,8 @@ With `user_name` and `project` in hand (from state.json or gathered now), say:
 >
 > I'll coordinate the full analysis of **[project name]** and generate executable specifications, ready for AI agents to use.
 >
+> The analysis is graph-based: before the agents read any code, I build a knowledge graph of the project with graphify, so they only open the parts that matter.
+>
 > I'll work in steps, saving progress at each phase. If the session is interrupted, just type `reversa` again to continue where we left off."
 
 ## 5. Exploration plan
