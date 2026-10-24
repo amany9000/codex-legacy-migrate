@@ -39,6 +39,7 @@ if (!command || command === '--help' || command === '-h') {
                        Requires: npm install -g @mermaid-js/mermaid-cli
     security-scan      Run a full-repository Codex Security audit
                        Options: --target=<path> --phase=pre|post --max-cost-usd=<amount>
+    dashboard          Open the local read-only security dashboard (127.0.0.1:4400)
 
   Main chat flows (after install):
     /reversa          Discovers and documents an existing system
@@ -60,6 +61,20 @@ if (command === '--version' || command === '-v') {
 if (command === 'security-scan' || command === '--security-scan') {
   const { runCli } = await import('../src/security/cli-audit.js');
   process.exitCode = await runCli(args);
+} else if (command === 'dashboard' || command === '--dashboard') {
+  const targetIndex = args.indexOf('--target');
+  const targetEquals = args.find((arg) => arg.startsWith('--target='));
+  const target = targetIndex >= 0
+    ? args[targetIndex + 1]
+    : targetEquals
+      ? targetEquals.slice('--target='.length)
+      : args.find((arg) => !arg.startsWith('-')) || process.cwd();
+  if (args.includes('--dry-run')) {
+    console.log(`Reversa dashboard dry run: http://127.0.0.1:4400; target=${target}; read-only migration status`);
+  } else {
+    const { startDashboardServer } = await import('../src/dashboard/server.js');
+    startDashboardServer(target);
+  }
 } else if (commands[command]) {
   const mod = await commands[command]();
   await mod.default(args);

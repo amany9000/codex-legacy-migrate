@@ -9,6 +9,7 @@
   "scripts": {
     "verify": "python3 scripts/verify-invocation.py && node scripts/test-installer-transport.mjs",
     "test": "node --test",
+    "dashboard": "node src/dashboard/server.js",
     "security:scan": "node src/security/cli-audit.js"
   },
   "keywords": [

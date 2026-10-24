@@ -438,6 +438,7 @@ npx reversa add-engine   # Add support for a new engine
 npx reversa uninstall    # Remove Reversa from the project
 npx reversa security-scan --target ./legacy-app --phase pre
 npx reversa security-scan --target ./legacy-app --phase post --max-cost-usd 5
+npx reversa dashboard --target ./legacy-app
 ```
 
 The `update` command detects files you modified via SHA-256 and never overwrites customizations.
@@ -449,11 +450,11 @@ The `reversa-security-audit` skill runs Codex Security against the full target r
 
 The Codex Security SDK requires Node.js 22.13+ (22.x), 24.x, or 26.x and Python 3.10+. Sign in with `npx @openai/codex-security login` or configure an API key supported by Codex Security. Reversa does not run a heuristic substitute when Codex Security is unavailable. Optional spend limits use `--max-cost-usd`.
 
-Scan JSON, the scorecard, and Markdown report are stored in `.reversa/security/`. That directory ignores generated report files in Git and uses restrictive filesystem permissions where supported; reports can contain sensitive source excerpts.
+Scan JSON, the scorecard, and Markdown report are stored in `.reversa/security/`. That directory ignores generated report files in Git and uses restrictive filesystem permissions where supported; reports can contain sensitive source excerpts. The dashboard binds to `127.0.0.1:4400`, reads Reversa state without changing it, and can trigger a full-repository scan.
 
 Graph-weighted risk combines vulnerability exposure (45%), Graphify blast radius (30%), graph uncertainty (15%), and verification deficit (10%). If Graphify data is unavailable, the security posture remains available but the composite score is marked unavailable. Findings without a Graphify file match stay visible as unmapped repository findings.
 
-The `security:scan` npm script is also available when running from the Reversa package. Use `--dry-run` with the CLI security command to verify target and phase selection without starting a scan.
+The `security:scan` and `dashboard` npm scripts are also available when running from the Reversa package. Use `--dry-run` with the CLI security command to verify target and phase selection without starting a scan.
 
 ---
 
