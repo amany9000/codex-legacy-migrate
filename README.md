@@ -1,14 +1,30 @@
-# codex-legacy-migrate
+# Graph Propagate
 
 **Graph-guided legacy migration for AI agents.**
-A fork of [Reversa](https://github.com/sandeco/reversa) that gives its agents a real, offline code graph ([Graphify](https://github.com/Graphify-Labs/graphify)) instead of making them read raw files, and wraps the migration in full-repository security scans, a local dashboard and an MCP server.
+Graph Propagate is a fork of [Reversa](https://github.com/sandeco/reversa) that gives its agents a real, offline code graph ([Graphify](https://github.com/Graphify-Labs/graphify)) instead of making them read raw files, and wraps the migration in full-repository security scans, a local dashboard and an MCP server.
 
-Repo: https://github.com/amany9000/codex-legacy-migrate
-Demo target: https://github.com/amany9000/nanohttpd (legacy multi-module Java HTTP server)
+<p align="center">
+  <img src="docs/img/grsphify.png" alt="Graphify knowledge graph of the migrated project" width="800"><br>
+  <em>Graphify knowledge graph, grouped by community</em>
+</p>
+
+## Links
+
+| What | Link |
+|---|---|
+| Main repo (`codex-legacy-migrate`) | https://github.com/amany9000/codex-legacy-migrate |
+| Repo used for migration, and the migrated result (NanoHTTPD) | https://github.com/amany9000/nanohttpd |
+| Migration MCP repo | https://github.com/adarshsaraf1234/migration-mcp |
+| Graphify MCP (hosted) | https://migration-mcp-trial-production.up.railway.app/mcp |
 
 ---
 
 ## Why this fork exists
+
+<p align="center">
+  <img src="docs/img/reversa-paper.png" alt="Reversa paper" width="500"><br>
+  <em>Reversa: the framework Graph Propagate builds on (Macedo &amp; da Costa, May 2026)</em>
+</p>
 
 Reversa turns a legacy system into executable specifications, but its agents (Scout, Archaeologist, Detective, Architect, Migrate team) work by having an LLM read raw files one module at a time:
 
@@ -56,7 +72,7 @@ graphify-runner.js ── offline extract (no LLM) ──► graphify-out/{graph
 
 ## Installation
 
-Prerequisites: Node.js 18+ (Reversa), Python 3.10+ with [`uv`](https://docs.astral.sh/uv/) (Graphify).
+Prerequisites: Node.js 21+ (Node.js 22.13+ if you run the security scans), Python 3.10+ with [`uv`](https://docs.astral.sh/uv/) (Graphify).
 
 ```bash
 # 1. Install the Graphify CLI (Reversa never installs Python packages itself)
@@ -68,6 +84,11 @@ git clone https://github.com/amany9000/codex-legacy-migrate.git
 # 3. In the root of the legacy project
 node /path/to/codex-legacy-migrate/bin/reversa.js install
 ```
+
+<p align="center">
+  <img src="docs/img/reversa-installer.png" alt="Reversa installer" width="700"><br>
+  <em>The installer detects your AI engines and sets up the agents</em>
+</p>
 
 The installer detects the AI engines in your environment (Claude Code, Codex, Cursor, etc.), copies the Reversa agents to `.agents/skills/` (and `.claude/skills/` for Claude Code), creates the engine entry file and the `.reversa/` structure, and, if you enable Graphify integration, runs `graphify install` for each detected engine and records the choice in `.reversa/state.json`.
 
@@ -155,6 +176,15 @@ Binds to `127.0.0.1:4400`, reads Reversa state without changing it, and can trig
 A small stdio MCP server for Graphify-based migration analysis, so any MCP client can use the graph without the Reversa CLI. It reuses the bundled Graphify runner and the JavaScript context/diff adapters and does not modify native Graphify artifacts.
 
 Source: https://github.com/adarshsaraf1234/migration-mcp (`src/migration_mcp`)
+Hosted endpoint: https://migration-mcp-trial-production.up.railway.app/mcp
+
+To use the hosted server from an MCP client that supports HTTP servers, for example Claude Code:
+
+```bash
+claude mcp add --transport http graph-propagate https://migration-mcp-trial-production.up.railway.app/mcp
+```
+
+To run it locally over stdio instead, see below.
 
 | Tool | Purpose |
 |---|---|
@@ -204,6 +234,18 @@ Per-agent telemetry from a real run on [NanoHTTPD](https://github.com/amany9000/
 - The graph locates entry points and scopes each module; agents then read only focused code (contracts, handshake, routing) instead of walking the tree.
 - Detective, Architect and Reviewer worked almost entirely from graph queries (one raw read of 7 lines across all three).
 - The single fallback was `relocation`: the AST graph does not model Maven relocation POMs, so the agent inspected the POM directly and logged it.
+
+## Migration Summary
+
+The NanoHTTPD migration, run through Graph Propagate:
+
+| Area | Summary |
+| --- | --- |
+| Code migration | 19 migration tasks completed across the existing modules, preserving the module layout and class based library design. |
+| Java baseline | Java 17 selected as the target. |
+| Build configuration | Maven and Gradle build configuration updated to support the migration. |
+| Dependencies | Maven plugin and library dependencies were reviewed and updated; Gradle dependencies/build setup were aligned. |
+| Verification | `mvn compile` succeeded. The README's second command needs the core snapshot installed or built in the reactor first. |
 
 ## Demo flow
 
