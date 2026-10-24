@@ -203,9 +203,9 @@ The `reversa-security-audit` skill runs [Codex Security](https://www.npmjs.com/p
 ```bash
 npx @openai/codex-security login          # or configure a supported API key
 
-npx reversa security-scan --target ./legacy-app --phase pre
-npx reversa security-scan --target ./legacy-app --phase post --max-cost-usd 5
-npx reversa security-scan --target ./legacy-app --phase pre --dry-run   # verify target and phase only
+npx graph-propagate security-scan --target ./legacy-app --phase pre
+npx graph-propagate security-scan --target ./legacy-app --phase post --max-cost-usd 5
+npx graph-propagate security-scan --target ./legacy-app --phase pre --dry-run   # verify target and phase only
 ```
 
 - Run `pre` before source changes and `post` after the migrated source is present.
@@ -218,7 +218,7 @@ npx reversa security-scan --target ./legacy-app --phase pre --dry-run   # verify
 ## Dashboard
 
 ```bash
-npx reversa dashboard --target ./legacy-app
+npx graph-propagate dashboard --target ./legacy-app
 ```
 
 Binds to `127.0.0.1:4400`, reads Reversa state without changing it, and can trigger a full-repository security scan. Run it in a separate terminal.

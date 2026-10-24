@@ -50,7 +50,7 @@ Read `.reversa/state.json` and `.reversa/plan.md`.
 ## 2. Version check
 
 Compare `.reversa/version` with the npm registry. If a newer version exists, mention it discreetly:
-> "💡 A new version is available. Run `npx reversa update` whenever you want to update."
+> "💡 A new version is available. Run `npx graph-propagate update` whenever you want to update."
 
 ## 3. Greeting
 

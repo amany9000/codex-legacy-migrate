@@ -1,9 +1,10 @@
 {
-  "name": "reversa",
-  "version": "1.3.6",
-  "description": "Transform legacy systems into executable specifications for AI coding agents",
+  "name": "graph-propagate",
+  "version": "1.4.0",
+  "description": "Graph-first reverse engineering for legacy systems (Reversa fork with graphify). Codex agents query a graphify knowledge graph of the code before reading files, so analysis runs faster with far fewer tokens. graphify is installed automatically on first run; choose AST (free, local) or semantic graphs.",
   "bin": {
-    "reversa": "bin/reversa.js"
+    "reversa": "bin/reversa.js",
+    "graph-propagate": "bin/reversa.js"
   },
   "type": "module",
   "scripts": {
@@ -21,7 +22,12 @@
     "codex",
     "gemini",
     "cursor",
-    "agents"
+    "agents",
+    "graphify",
+    "knowledge-graph",
+    "graph",
+    "graph-first",
+    "token-reduction"
   ],
   "files": [
     "agents/",
@@ -32,18 +38,30 @@
     "README.md",
     "LICENSE"
   ],
-  "author": "sandeco",
+  "author": "Aman (fork of Reversa by sandeco)",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sandeco/reversa.git"
+    "url": "git+https://github.com/amany9000/graph-propagate"
   },
-  "homepage": "https://github.com/sandeco/reversa",
+  "homepage": "https://github.com/amany9000/graph-propagate",
   "bugs": {
-    "url": "https://github.com/sandeco/reversa/issues"
+    "url": "https://github.com/amany9000/graph-propagate/issues"
   },
   "engines": {
     "node": ">=18.20.2"
+  },
+  "graphify": {
+    "package": "graphifyy",
+    "testedVersion": "0.9.95",
+    "install": "auto: uv tool install graphifyy | pipx install graphifyy | python3 -m pip install --user graphifyy",
+    "graphLocation": ".reversa/graphify-out/ (or a read-only graphify-out/ at the project root)",
+    "modes": "ast (default, free, local) | semantic (LLM, richer INFERRED edges)",
+    "agents": [
+      "reversa-graph-builder",
+      "reversa-graph-navigator"
+    ],
+    "usedBy": "Scout, Archaeologist, Detective, Architect, Data Master, Reviewer, Migration team, Bugs team"
   },
   "dependencies": {
     "@openai/codex-security": "^0.6.0",

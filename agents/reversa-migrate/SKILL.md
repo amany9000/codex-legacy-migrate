@@ -90,7 +90,7 @@ Render `_reversa_sdd/migration/migration_brief.md` using the template in `refere
 Before initializing or resuming migration agents, run a completed full-repository Codex Security scan:
 
 ```text
-npx reversa security-scan --target <repository-root> --phase pre
+npx graph-propagate security-scan --target <repository-root> --phase pre
 ```
 
 This scan is independent of Graphify: Graphify traversal remains bounded migration context, while security covers the entire repository. Require `status: complete` and complete coverage. If the scan fails, the runtime is unavailable, or coverage is incomplete, stop the migration, record `security.pre.status = failed|incomplete` in `_reversa_sdd/migration/.state.json`, and ask the user to resolve it. Never treat an unavailable or partial scan as clean.
@@ -164,7 +164,7 @@ This mechanism is generic: new agents can adopt it by declaring their checkpoint
 After the Inspector completes (and before generating the final handoff), run:
 
 ```text
-npx reversa security-scan --target <repository-root> --phase post
+npx graph-propagate security-scan --target <repository-root> --phase post
 ```
 
 Require a completed scan with adequate coverage, then generate the security scorecard and compare pre/post findings. If this gate fails or coverage is incomplete, keep the migration incomplete and set `security.gateStatus = blocked`; do not report “Migration complete.” Only after a successful post scan may the handoff include posture, open/remediated findings, unmatched findings, and risk grades.

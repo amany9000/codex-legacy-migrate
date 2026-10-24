@@ -135,7 +135,7 @@ Apenas escreve em `_reversa_docs/`. `chronicle.md`, `modules.json`, `deps.json` 
 | `modules.json`/`deps.json` (Mapper não rodou) | Invoca scripts de extração antes de seguir. |
 | `chronicle.md` | Omite timeline.html, registra motivo em `pagesOmitted`. |
 | Python indisponível | Faz parsing inline via Read + regex. |
-| Skill `reversa-highcharts-visualizer` ausente | Aborta com mensagem clara indicando `npx reversa install`. |
+| Skill `reversa-highcharts-visualizer` ausente | Aborta com mensagem clara indicando `npx graph-propagate install`. |
 
 ## Encerramento
 

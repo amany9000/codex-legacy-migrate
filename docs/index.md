@@ -19,7 +19,7 @@ Reversa is a specification reverse-engineering framework. You install it inside 
 In the root of your project:
 
 ```bash
-npx reversa install
+npx graph-propagate install
 ```
 
 Then open the project in your favorite AI agent and choose the workflow:

@@ -1,6 +1,6 @@
 # CLI
 
-Reversa has a simple CLI to manage the installation and lifecycle of agents in your project. All commands run with `npx reversa` in the project root.
+Reversa has a simple CLI to manage the installation and lifecycle of agents in your project. All commands run with `npx graph-propagate` in the project root.
 
 ---
 
@@ -13,12 +13,7 @@ The `by sandeco` signature must appear in white on the last line of the artwork,
 Expected format:
 
 ```text
-  ______
-  | ___ \
-  | |_/ /_____   _____ _ __ ___  __ _
-  |    // _ \ \ / / _ \ '__/ __|/ _` |
-  | |\ \  __/\ V /  __/ |  \__ \ (_| |
-  \_| \_\___| \_/ \___|_|  |___/\__,_|  by sandeco
+ Graph-Propagate by ChaChaCha
 
   AI-Powered, graph-based Reverse Engineering Framework.
 ```
@@ -30,7 +25,7 @@ Expected format:
 ### `install`
 
 ```bash
-npx reversa install
+npx graph-propagate install
 ```
 
 Installs Reversa in the current legacy project. Detects present engines, asks for your preferences, and creates the entire required structure.
@@ -53,7 +48,7 @@ There is no agent selection: the installer always installs **all** agents shippe
 ### `status`
 
 ```bash
-npx reversa status
+npx graph-propagate status
 ```
 
 Shows the current analysis state: which phase is in progress, which agents have already run, what's left to complete.
@@ -65,7 +60,7 @@ Useful for a quick overview before resuming a session.
 ### `update`
 
 ```bash
-npx reversa update
+npx graph-propagate update
 ```
 
 Updates everything to the latest version of Reversa: all agents shipped with the package are reinstalled, including agents that didn't exist when you first installed.
@@ -77,7 +72,7 @@ The command is smart: it checks the SHA-256 manifest of each file and never over
 ### `add-engine`
 
 ```bash
-npx reversa add-engine
+npx graph-propagate add-engine
 ```
 
 Adds support for an AI engine that wasn't present when you installed. For example: you installed only for Claude Code and now want to add Codex.
@@ -87,7 +82,7 @@ Adds support for an AI engine that wasn't present when you installed. For exampl
 ### `uninstall`
 
 ```bash
-npx reversa uninstall
+npx graph-propagate uninstall
 ```
 
 Removes Reversa from the project: deletes the files created by the installation (`.reversa/`, `.agents/skills/reversa-*/`, engine entry files).

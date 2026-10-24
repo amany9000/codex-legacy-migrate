@@ -137,7 +137,7 @@ Apenas escreve em `_reversa_docs/`. Código fonte do projeto legado é lido para
 | Código fonte (projeto vazio) | Omite arquitetura.html e modulos.html. Gera apenas placeholder mínimo. |
 | `_reversa_sdd/architecture.md` | Omite topologia.html. |
 | Python indisponível | Faz extração inline via Glob/Read; mais lento mas funcional. |
-| Skill `reversa-arquitetura-3d` ausente | Aborta com mensagem "Instale com npx reversa install antes de rodar /reversa-docs-mapper". |
+| Skill `reversa-arquitetura-3d` ausente | Aborta com mensagem "Instale com npx graph-propagate install antes de rodar /reversa-docs-mapper". |
 
 ## Encerramento
 
