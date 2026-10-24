@@ -2346,25 +2346,20 @@
 
 
 <h1 id="cli">CLI<a class="headerlink" href="#cli" title="Permanent link">&para;</a></h1>
-<p>Reversa has a simple CLI to manage the installation and lifecycle of agents in your project. All commands run with <code>npx reversa</code> in the project root.</p>
+<p>Reversa has a simple CLI to manage the installation and lifecycle of agents in your project. All commands run with <code>npx graph-propagate</code> in the project root.</p>
 <hr />
 <h2 id="initial-behavior">Initial behavior<a class="headerlink" href="#initial-behavior" title="Permanent link">&para;</a></h2>
 <p>When the CLI starts and before it shows the Reversa ASCII logo, it must clear the terminal screen. The logo should appear at the top of the terminal, with no previous content above it.</p>
 <p>The <code>by sandeco</code> signature must appear in white on the last line of the artwork, after a right-side margin from the end of the large <code>Reversa</code> word. It must not float in the middle of the logo height.</p>
 <p>Expected format:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>  ______
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  | ___ \
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  | |_/ /_____   _____ _ __ ___  __ _
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  |    // _ \ \ / / _ \ '__/ __|/ _` |
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  | |\ \  __/\ V /  __/ |  \__ \ (_| |
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  \_| \_\___| \_/ \___|_|  |___/\__,_|  by sandeco
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>  AI-Powered, graph-based Reverse Engineering Framework.
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a> Graph-Propagate by ChaChaCha
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  AI-Powered, graph-based Reverse Engineering Framework.
 </code></pre></div>
 <hr />
 <h2 id="available-commands">Available commands<a class="headerlink" href="#available-commands" title="Permanent link">&para;</a></h2>
 <h3 id="install"><code>install</code><a class="headerlink" href="#install" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>npx<span class="w"> </span>reversa<span class="w"> </span>install
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>npx<span class="w"> </span>graph-propagate<span class="w"> </span>install
 </code></pre></div>
 <p>Installs Reversa in the current legacy project. Detects present engines, asks for your preferences, and creates the entire required structure.</p>
 <p>Use once, in the root of the project you want to analyze.</p>
@@ -2378,24 +2373,24 @@
 <p>There is no agent selection: the installer always installs <strong>all</strong> agents shipped with the package. The final installation summary breaks the count down by team (Discovery, Migration, Code Forward, New Project, Documentation, Translators and Pricing).</p>
 <hr />
 <h3 id="status"><code>status</code><a class="headerlink" href="#status" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>npx<span class="w"> </span>reversa<span class="w"> </span>status
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>npx<span class="w"> </span>graph-propagate<span class="w"> </span>status
 </code></pre></div>
 <p>Shows the current analysis state: which phase is in progress, which agents have already run, what's left to complete.</p>
 <p>Useful for a quick overview before resuming a session.</p>
 <hr />
 <h3 id="update"><code>update</code><a class="headerlink" href="#update" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>npx<span class="w"> </span>reversa<span class="w"> </span>update
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>npx<span class="w"> </span>graph-propagate<span class="w"> </span>update
 </code></pre></div>
 <p>Updates everything to the latest version of Reversa: all agents shipped with the package are reinstalled, including agents that didn't exist when you first installed.</p>
 <p>The command is smart: it checks the SHA-256 manifest of each file and never overwrites files you've customized. If you made adjustments to any agent, they stay intact.</p>
 <hr />
 <h3 id="add-engine"><code>add-engine</code><a class="headerlink" href="#add-engine" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>npx<span class="w"> </span>reversa<span class="w"> </span>add-engine
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>npx<span class="w"> </span>graph-propagate<span class="w"> </span>add-engine
 </code></pre></div>
 <p>Adds support for an AI engine that wasn't present when you installed. For example: you installed only for Claude Code and now want to add Codex.</p>
 <hr />
 <h3 id="uninstall"><code>uninstall</code><a class="headerlink" href="#uninstall" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>npx<span class="w"> </span>reversa<span class="w"> </span>uninstall
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>npx<span class="w"> </span>graph-propagate<span class="w"> </span>uninstall
 </code></pre></div>
 <p>Removes Reversa from the project: deletes the files created by the installation (<code>.reversa/</code>, <code>.agents/skills/reversa-*/</code>, engine entry files).</p>
 <div class="admonition info">
