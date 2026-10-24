@@ -78,6 +78,16 @@ Executar `actions.md` quase sempre exige criar ou editar arquivos do projeto. An
 1. Se o argumento livre indicar fase ou intervalo de IDs (ex.: "só Núcleo", "T001-T005"), restrinja a execução a esse escopo
 2. Caso contrário, execute em ordem todas as ações `[ ]` ainda não concluídas
 
+## Evidência Graphify em uma migração
+
+Use esta etapa somente quando o handoff ativo de `/reversa-migrate` apontar um snapshot baseline Graphify. Ela complementa a execução normal da feature e não se aplica a rodadas forward comuns.
+
+1. Leia o caminho exato do baseline registrado em `<output_folder>/migration/handoff.md` e confirme que o arquivo existe. Antes de alterar o alvo, chame `get_migration_context` para o símbolo/módulo envolvido e use os callers, dependências e warnings como pistas para revisar o código e os testes.
+2. Execute as ações previstas e os testes relevantes normalmente.
+3. Após as alterações e os testes, chame `analyze_legacy_repo` no repositório pós-migração. Só se a análise for bem-sucedida chame `compare_migration_graphs` com o baseline preservado e o novo `graph_json` retornado.
+4. Relate additions/removals/changes estruturais, warnings, limitações e o resultado dos testes. Nunca declare equivalência comportamental com base no diff.
+5. Se as ferramentas não estiverem disponíveis nesta sessão Codex, ou se os caminhos/snapshots não forem válidos, declare a verificação Graphify como não executada. Não substitua as chamadas MCP por comandos Graphify manuais nem sobrescreva o baseline.
+
 ## Loop de execução por fase
 
 Para cada fase, na ordem Preparação, Testes, Núcleo, Integração, Polimento:

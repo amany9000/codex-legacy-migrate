@@ -1,6 +1,6 @@
 # Graphify integration contract (verified)
 
-This contract records behavior verified with the installed Graphify CLI `0.9.94` on 2026-10-23. Graphify is already installed at `/Users/adarshsaraf/.local/bin/graphify`; no install was needed. `graphify --version` reported `graphify 0.9.94`. `graphify --help` is the supported full CLI help entry point. Subcommand `--help` is not consistently implemented: for example `graphify extract --help` prints the global usage hint rather than extract-specific help.
+This contract records behavior verified with the Graphify CLI `0.9.94` on 2026-10-23. `graphify --version` reported `graphify 0.9.94`. `graphify --help` is the supported full CLI help entry point. Subcommand `--help` is not consistently implemented: for example `graphify extract --help` prints the global usage hint rather than extract-specific help. Executable locations are installation-specific; use PATH or configure the local executable path rather than relying on a particular machine's install directory.
 
 ## Targeted analysis and artifact paths
 
@@ -11,7 +11,7 @@ graphify extract ../legacy-demo-app --code-only --no-cluster
 graphify cluster-only ../legacy-demo-app --no-label
 ```
 
-The extraction log explicitly said it was scanning `/Users/adarshsaraf/Projects/graph-migration-workspace/legacy-demo-app`, found 7 code files, and wrote 21 nodes and 34 raw edges. The product repository was not scanned. `--code-only` avoids semantic LLM extraction; `--no-cluster` leaves the raw extraction for the following clustering/report pass. `cluster-only --no-label` produced:
+The extraction log explicitly said it was scanning the designated sibling `legacy-demo-app` fixture repository, found 7 code files, and wrote 21 nodes and 34 raw edges. The product repository was not scanned. `--code-only` avoids semantic LLM extraction; `--no-cluster` leaves the raw extraction for the following clustering/report pass. `cluster-only --no-label` produced:
 
 - `../legacy-demo-app/graphify-out/graph.json`
 - `../legacy-demo-app/graphify-out/GRAPH_REPORT.md`

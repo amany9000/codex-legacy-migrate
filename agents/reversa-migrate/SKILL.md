@@ -48,6 +48,18 @@ Execute estritamente nesta ordem:
 3. Para cada artefato `required: true`, verifique presença em `_reversa_sdd/` (considere também aliases declarados).
    - Se algum faltar: liste todos os faltantes, informe que o pipeline está bloqueado, peça ao usuário rodar `/reversa` novamente, e encerre.
 
+### Evidência de dependências com Migration MCP (Codex)
+
+Quando o usuário estiver planejando uma migração de código legado e o Migration MCP estiver disponível nesta sessão Codex, use-o como evidência adicional antes de consolidar as decisões da migração:
+
+1. Chame `analyze_legacy_repo` com o caminho absoluto do repositório legado. Só prossiga com evidência Graphify se o resultado indicar sucesso e apontar para `graph.json` existente. Se o servidor ou a ferramenta não estiver disponível, informe isso explicitamente; não simule a chamada executando Graphify manualmente.
+2. Preserve uma cópia do JSON nativo em `<output_folder>/migration/graphify-baseline.json`. Se já existir, não sobrescreva: escolha um nome de snapshot novo com data/revisão e registre o caminho usado no `handoff.md`. Preserve o grafo sem editá-lo.
+3. Use `get_migration_context` para os símbolos ou módulos prioritários identificados nos artefatos existentes. Peça contexto limitado (por exemplo, `max_depth: 2`, `max_nodes: 40`, `max_edges: 40`). Registre callers, dependências, direção das relações, localização de fonte, warnings e completude da evidência; não trate ausência no grafo como prova de ausência no código.
+4. Leia o código e os testes correspondentes antes de formular requisitos de migração. Graphify complementa a análise dos agentes, não substitui inspeção de código nem testes.
+5. No `handoff.md`, inclua o caminho do snapshot baseline e instrua o agente de codificação a, após implementar e testar a migração, chamar `analyze_legacy_repo` para o repositório pós-migração e `compare_migration_graphs` com os dois snapshots. Registre mudanças estruturais, warnings e limitações. Diff de grafo não prova equivalência comportamental.
+
+Se esta sessão não expuser as ferramentas `analyze_legacy_repo`, `get_migration_context` e `compare_migration_graphs`, não alegue integração com MCP nem substitua a chamada por execução manual. Continue o pipeline de especificação existente apenas quando isso não depender da evidência Graphify solicitada e deixe o bloqueio visível no handoff.
+
 ### Passo 2: Estado e modo
 
 1. Se `_reversa_sdd/migration/.state.json` **não existir**: este é primeiro run; siga para o passo 3.
