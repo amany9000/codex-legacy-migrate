@@ -1,18 +1,55 @@
 {
-  "name": "graph-migrate-codex",
-  "version": "1.0.0",
-  "main": "index.js",
+  "name": "reversa",
+  "version": "1.4.0",
+  "description": "Transform legacy systems into executable specifications for AI coding agents",
+  "bin": {
+    "reversa": "bin/reversa.js"
+  },
+  "type": "module",
   "scripts": {
+    "verify": "python3 scripts/verify-invocation.py && node scripts/test-installer-transport.mjs",
     "test": "node --test",
     "graphify:analyze": "node graphify-runner.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "module",
-  "directories": {
-    "doc": "docs",
-    "test": "tests"
+  "keywords": [
+    "legacy",
+    "reverse-engineering",
+    "specifications",
+    "ai",
+    "claude",
+    "codex",
+    "gemini",
+    "cursor",
+    "agents",
+    "knowledge-graph"
+  ],
+  "files": [
+    "agents/",
+    "bin/",
+    "lib/",
+    "src/",
+    "graphify-runner.js",
+    "templates/",
+    "README.md",
+    "LICENSE"
+  ],
+  "author": "sandeco",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sandeco/reversa.git"
   },
-  "description": ""
+  "homepage": "https://github.com/sandeco/reversa",
+  "bugs": {
+    "url": "https://github.com/sandeco/reversa/issues"
+  },
+  "engines": {
+    "node": ">=18.20.2"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "inquirer": "^9.2.0",
+    "ora": "^7.0.1",
+    "semver": "^7.6.0"
+  }
 }

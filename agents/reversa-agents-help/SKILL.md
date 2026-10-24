@@ -32,6 +32,7 @@ O Reversa é um time de especialistas. Cada agente faz uma coisa só — e faz b
 | Gerar um mini-site visual da documentação | `/reversa-docs` | Documentation Agents |
 | Descobrir como vender e quanto cobrar pelo software ou por uma feature | `/reversa-pricing` | Pricing and Size Agents |
 | Desenhar, criticar, auditar ou polir uma interface de front-end | `/impeccable` | Front-end Team (Impeccable) |
+| Ver quem chama um símbolo, o impacto de mudá-lo ou o que mudou no grafo do código | `/reversa-graph` | Grafo de conhecimento (Graphify) |
 | Entender qual agente usar | `/reversa-agents-help` | Guia de agentes |
 
 O time de Pricing entra por `/reversa-pricing`. Translators usam `/reversa-n8n`.
@@ -194,6 +195,15 @@ Um diretor de arte premiado não aceita o template que todo mundo usa. Ele olha 
 
 ---
 
+## 🕸️ Graph: o cartógrafo do código
+**Comando:** `/reversa-graph`
+
+O cartógrafo não lê a cidade rua por rua toda vez que alguém pergunta um caminho. Ele desenha o mapa uma vez e responde em segundos: quem chama esta função, o que quebra se ela mudar, quais bairros do código andam sempre juntos. Depois de uma obra, compara o mapa novo com o antigo e aponta cada rua aberta ou fechada.
+
+> Use quando precisar de evidência estrutural: `build` gera o grafo, `context "<símbolo>"` mostra dependências, chamadores e impacto reverso, `diff` compara snapshots antes e depois de uma fatia de migração. O grafo vem do [Graphify](https://github.com/Graphify-Labs/graphify) (Graphify-Labs, Apache-2.0 / MIT), um CLI Python externo que roda offline; o Reversa não o empacota. Os agentes do pipeline usam o grafo sozinhos quando ele está habilitado.
+
+---
+
 ## Sequência recomendada
 
 ```
@@ -202,6 +212,7 @@ Projeto novo:   /reversa-new → PRD e specs → /reversa-forward
 Migração:       /reversa → /reversa-migrate → /reversa-forward
 Precificar:     /reversa-pricing → advisor → profile → product | size → estimate
 Front-end:      /impeccable init → /impeccable <comando> <alvo>
+Grafo:          /reversa-graph build → context "<símbolo>" → snapshot → diff
 
 Pipeline legado manual:
 Scout → Archaeologist (N sessões) → Detective → Architect → Writer → Reviewer

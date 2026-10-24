@@ -45,6 +45,7 @@ Analise o histórico de commits (`git log`):
 - Constantes e enums com nomes de negócio
 - Comentários (mesmo antigos — são evidências)
 - TODOs e FIXMEs que revelam intenções não implementadas
+- Com o grafo habilitado (`graph.enabled` em `.reversa/state.json`), use `node .reversa/tools/graph/bin/reversa-graph.js context "<função da regra>" --depth=3` para descobrir **quem depende** de cada regra encontrada: os `callers` e o `impact` mostram em quais fluxos a regra realmente se aplica. Cite `arquivo:linha` das arestas como evidência (receita em `reversa-graph/references/graph-usage.md`, pasta irmã).
 
 ### 3. Máquinas de estado
 Para cada entidade com campos de status/estado:

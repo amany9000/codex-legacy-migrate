@@ -18,6 +18,7 @@ const commands = {
   uninstall:          () => import('../lib/commands/uninstall.js'),
   'add-engine':       () => import('../lib/commands/add-engine.js'),
   'export-diagrams':  () => import('../lib/commands/export-diagrams.js'),
+  graph:              () => import('../lib/commands/graph.js'),
 };
 
 if (!command || command === '--help' || command === '-h') {
@@ -37,6 +38,8 @@ if (!command || command === '--help' || command === '-h') {
     export-diagrams    Exporta diagramas Mermaid como imagens SVG/PNG
                        Opções: --format=svg|png  --output=<pasta>
                        Requer: npm install -g @mermaid-js/mermaid-cli
+    graph              Grafo de código via Graphify (build, context, summary, deps, diff)
+                       Execute "npx reversa graph help" para os subcomandos
 
   Fluxos principais no chat (após a instalação):
     /reversa          Descobre e documenta um sistema existente

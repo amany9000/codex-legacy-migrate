@@ -31,6 +31,17 @@ O campo `doc_level` do state.json controla o que gerar:
 
 ## Processo — para cada módulo do plano
 
+### 0. Escopo pelo grafo (opcional)
+
+Se `.reversa/state.json` → `graph.enabled` for `true` e `graphify-out/graph.json` existir, comece o módulo pelo grafo (receita em `reversa-graph/references/graph-usage.md`, pasta irmã):
+
+1. Escolha os símbolos centrais do módulo: hubs do `knowledge_graph` em `surface.json` cujo `source_file` está na pasta do módulo, mais os entry points do módulo.
+2. Para cada um, rode `node .reversa/tools/graph/bin/reversa-graph.js context "<símbolo>" --json`.
+3. Use `dependencies`, `callers` e `impact` para decidir **quais arquivos ler** e em que ordem. Leia os trechos apontados por `source_file:source_location` em vez de varrer a pasta inteira. Isso reduz o consumo de contexto e as pausas do passo 6.
+4. Preencha `dependencies` do `modules.json` com os módulos alcançados pelas arestas, e `dependency_evidence` com a origem de cada um (`graph` ou `inferred`), conforme `references/modules-schema.md`.
+
+O grafo direciona a leitura; ele não substitui os passos 1 a 4. Se o grafo estiver indisponível, siga direto para o passo 1.
+
 ### 1. Fluxo de controle
 - Funções e métodos principais (nome, parâmetros, retorno)
 - Condicionais complexas com lógica não-trivial

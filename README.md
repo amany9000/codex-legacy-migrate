@@ -110,6 +110,7 @@ For other workflows, use the matching entry command:
 | Track and fix defects with causal traceability | `/reversa-debugger`, `/reversa-debugger-fix` |
 | Price your software or a feature: sale model, billing profile, size and three scenarios | `/reversa-pricing` |
 | Design, critique, audit or polish a frontend interface (Impeccable) | `/impeccable` |
+| Query the code graph: callers, reverse impact, structural diff between snapshots (Graphify) | `/reversa-graph` |
 
 Each orchestrator pauses between agents and asks for `CONTINUAR` before advancing, so you stay in control of every step.
 
@@ -266,6 +267,10 @@ Reversa ships **[Impeccable](https://github.com/pbakaus/impeccable)** as its Fro
 Start with `/impeccable init` once per project, then `/impeccable <command> <target>` (e.g. `/impeccable critique landing`, `/impeccable polish settings`). The first run downloads the Impeccable engine binary into `~/.impeccable/bin`; no Node runtime is required.
 
 The copy under `agents/impeccable/` is synced verbatim from the upstream release tags by `scripts/sync-impeccable.mjs`; a daily GitHub Action opens a pull request whenever Impeccable publishes a new release, so `npx reversa update` always carries the current version. Source, version and commit are recorded in `agents/impeccable/reversa-bundle.json`.
+
+### Knowledge graph (Graphify)
+
+Reversa can use **[Graphify](https://github.com/Graphify-Labs/graphify)** (Graphify-Labs, Apache-2.0 / MIT) to build an offline code graph with tree-sitter. Graphify is an external Python CLI and is not bundled: `npx reversa install` asks whether to enable it, and if it is missing offers to install it with `uv`, then `pipx`, then `pip`, always after confirmation. When enabled, the Scout, Archaeologist, Detective, Architect and the Migration Team query the graph instead of re-reading every file, and the Inspector adds a structural parity check per migration slice. Without Graphify everything works as before. See [docs/graph/index.md](docs/graph/index.md).
 
 ### Translators (input adapters)
 
@@ -436,6 +441,7 @@ npx reversa status       # Show current analysis state
 npx reversa update       # Update everything to the latest version (all agents)
 npx reversa add-engine   # Add support for a new engine
 npx reversa uninstall    # Remove Reversa from the project
+npx reversa graph help   # Code graph via Graphify: build, context, summary, deps, snapshot, diff
 ```
 
 The `update` command detects files you modified via SHA-256 and never overwrites customizations.
@@ -486,3 +492,4 @@ MIT — see [LICENSE](LICENSE) for details.
 | Component | Author | License | Where |
 |-----------|--------|---------|-------|
 | [Impeccable](https://github.com/pbakaus/impeccable) | Paul Bakaus | [Apache License 2.0](agents/impeccable/LICENSE) · [NOTICE](agents/impeccable/NOTICE.md) | `agents/impeccable/` (Front-end Team) |
+| [Graphify](https://github.com/Graphify-Labs/graphify) | Graphify-Labs | Apache-2.0 / MIT | External CLI (`graphifyy` on PyPI), not bundled; its skill is rendered by `graphify install` at install time |

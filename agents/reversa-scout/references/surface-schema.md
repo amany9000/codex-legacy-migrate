@@ -61,6 +61,34 @@ Arquivo gerado pelo Scout. Usado pelos demais agentes como fonte de contexto est
 
 Todos os demais, inclua apenas o que for encontrado.
 
+## Campo `knowledge_graph` (opcional)
+
+Presente apenas quando o grafo do Graphify está habilitado (`state.json` → `graph.enabled`). Derivado de `reversa-graph.js summary --json`; o grafo completo continua em `graphify-out/graph.json`.
+
+```json
+"knowledge_graph": {
+  "path": "graphify-out/graph.json",
+  "graphify_version": "0.9.95",
+  "nodes": 20,
+  "edges": 35,
+  "source_files": 7,
+  "relations": { "calls": 4, "imports": 6, "imports_from": 10, "contains": 11 },
+  "communities": [
+    { "id": 0, "name": "Community 0", "nodes": 8, "files": ["catalog.js", "legacy-utils.js", "order-service.js", "report.js"] }
+  ],
+  "hubs": [
+    { "id": "legacy_utils_findbyid", "label": "findById()", "source_file": "legacy-utils.js", "dependents": 4, "dependencies": 0 }
+  ],
+  "warnings": ["Unverified relationship type(s) are preserved but not traversed: indirect_call."]
+}
+```
+
+| Campo | Descrição |
+|-------|-----------|
+| `communities` | Agrupamentos do Graphify, do maior para o menor. Os nomes ficam como `Community N` porque o build roda offline, sem rotulagem por LLM. |
+| `hubs` | Nós com mais dependentes (`calls`, `imports`, `imports_from` de entrada). |
+| `warnings` | Limitações reportadas pelo adaptador; repita as relevantes no `inventory.md`. |
+
 ## Campo `organization_suggestion`
 
 Sugestão de como organizar as specs deste projeto. Lido pelo orquestrador Reversa para pré-marcar a opção default no menu de organização das specs.

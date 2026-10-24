@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 
-const dependencyRelations = new Set(['calls', 'imports', 'imports_from']);
+export const dependencyRelations = new Set(['calls', 'imports', 'imports_from']);
 const impactRelations = new Set(['calls', 'imports', 'imports_from']);
 const observedRelations = new Set(['calls', 'contains', 'imports', 'imports_from']);
 const DEFAULT_MAX_DEPTH = 2;

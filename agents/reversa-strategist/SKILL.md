@@ -51,6 +51,7 @@ Extraia:
 - **Severidade do gap de paradigma** (do `paradigm_decision.md`).
 - **Restrições do brief** (prazo, orçamento, regulação).
 - **Regras de negócio críticas** identificadas pelo Curator (especialmente lógicas regulatórias / financeiras).
+- **Acoplamento real** (opcional): com o grafo habilitado (`graph.enabled` em `.reversa/state.json`), rode `node .reversa/tools/graph/bin/reversa-graph.js summary --json` e `node .reversa/tools/graph/bin/reversa-graph.js context "<símbolo>" --depth=3` para os hubs e para os símbolos centrais de cada módulo candidato a fatia (receita em `reversa-graph/references/graph-usage.md`, pasta irmã). Use o tamanho do `impact` para ordenar as fatias (folhas com pouco impacto reverso primeiro) e as arestas entre comunidades para localizar fronteiras de corte do Strangler Fig. Registre em `migration_strategy.md`, seção "Ordem das fatias", o impacto de cada fatia com a evidência do grafo.
 
 ### 2. Filtrar estratégias aplicáveis
 
@@ -84,6 +85,7 @@ Construa `risk_register.md` cobrindo no mínimo:
 - Riscos de dados (volume, qualidade, dependência de schema legado).
 - Riscos operacionais (janelas, dependências externas, regulação).
 - Riscos organizacionais (capacidade do time na stack alvo).
+- Com o grafo habilitado: hubs com muitos dependentes viram riscos de acoplamento explícitos (o `impact` mostra o raio de quebra).
 
 Cada risco com probabilidade, impacto, mitigação, plano de contingência e owner.
 

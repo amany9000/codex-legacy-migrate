@@ -108,6 +108,19 @@ Cada `.feature` deve:
 - Usar tags consistentes (`@paridade`, `@critico`, `@idempotencia`, `@ordem`, `@regulatorio` quando aplicável).
 - Estar em **Gherkin válido** (Funcionalidade / Cenário / Dado / Quando / Então).
 
+### 4b. Paridade estrutural pelo grafo (opcional)
+
+Se `.reversa/state.json` → `graph.enabled` for `true`, adicione a `parity_specs.md` a seção **"Paridade estrutural (grafo)"** com o protocolo por fatia que o agente de codificação deve seguir (receita em `reversa-graph/references/graph-usage.md`, pasta irmã):
+
+1. Antes de tocar a fatia: `node .reversa/tools/graph/bin/reversa-graph.js snapshot baseline-<fatia>`.
+2. Depois de implementar: `node .reversa/tools/graph/bin/reversa-graph.js build` e `node .reversa/tools/graph/bin/reversa-graph.js diff baseline-<fatia> latest --out=_reversa_sdd/migration/graph-diff-<fatia>.md`.
+3. Critérios de aceite estrutural da fatia, derivados de `migration_strategy.md`:
+   - arestas `calls` removidas ou adicionadas devem estar previstas na fatia (liste as esperadas);
+   - chamadores do legado que deveriam continuar ligados não podem desaparecer;
+   - `summary.complete: false` ou acoplamento novo inesperado bloqueiam a fatia até revisão humana.
+
+O diff é evidência estrutural, não prova de comportamento: ele complementa os `.feature`, nunca os substitui.
+
 ### 5. Reusar characterization_specs
 
 Se `_reversa_sdd/characterization_specs/` existir, leia e reuse como base. Adapte:

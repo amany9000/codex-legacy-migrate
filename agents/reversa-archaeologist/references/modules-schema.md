@@ -60,6 +60,25 @@ Arquivo gerado pelo Arqueólogo. Usado pelo Detetive, Arquiteto e Redator.
 | `"inferred"` | 🟡 | Baseado em padrões |
 | `"unknown"` | 🔴 | Não determinável |
 
+## Campo opcional `dependency_evidence`
+
+Quando o grafo do Graphify está habilitado, registre a origem de cada item de `dependencies` (que continua sendo uma lista de nomes de módulos):
+
+```json
+"dependency_evidence": [
+  {
+    "module": "users",
+    "source": "graph",
+    "edges": [
+      { "from": "createOrder()", "to": "findUser()", "relation": "calls", "location": "src/orders/service.ts:L42", "confidence": "EXTRACTED" }
+    ]
+  },
+  { "module": "notifications", "source": "inferred", "edges": [] }
+]
+```
+
+`source: graph` = confirmado por arestas do grafo (`reversa-graph.js context`); `source: inferred` = deduzido pela leitura do código, sem aresta correspondente.
+
 ## Campos obrigatórios por módulo
 
 `name`, `path`, `purpose`, `primary_files`

@@ -1,23 +1,23 @@
 # Graphify integration contract (verified)
 
-This contract records behavior verified with the installed Graphify CLI `0.9.94` on 2026-10-23. Graphify is already installed at `/Users/adarshsaraf/.local/bin/graphify`; no install was needed. `graphify --version` reported `graphify 0.9.94`. `graphify --help` is the supported full CLI help entry point. Subcommand `--help` is not consistently implemented: for example `graphify extract --help` prints the global usage hint rather than extract-specific help.
+This contract records behavior verified with the Graphify CLI `0.9.94` on 2026-10-23 and re-verified with `0.9.95` on 2026-10-24 (see [Re-verification on 0.9.95](#re-verification-on-0995)). Install Graphify with `uv tool install graphifyy` (or pipx/pip, see [Knowledge Graph](graph/index.md)); `graphify --version` reports e.g. `graphify 0.9.95`. `graphify --help` is the supported full CLI help entry point. Subcommand `--help` is not consistently implemented: for example `graphify extract --help` prints the global usage hint rather than extract-specific help.
 
 ## Targeted analysis and artifact paths
 
-Run from `graph-migrate-codex`:
+Run from the Reversa package directory (the runner's own folder), with an explicit target:
 
 ```sh
 graphify extract ../legacy-demo-app --code-only --no-cluster
 graphify cluster-only ../legacy-demo-app --no-label
 ```
 
-The extraction log explicitly said it was scanning `/Users/adarshsaraf/Projects/graph-migration-workspace/legacy-demo-app`, found 7 code files, and wrote 21 nodes and 34 raw edges. The product repository was not scanned. `--code-only` avoids semantic LLM extraction; `--no-cluster` leaves the raw extraction for the following clustering/report pass. `cluster-only --no-label` produced:
+The extraction log explicitly said it was scanning the `legacy-demo-app` target, found 7 code files, and wrote 21 nodes and 34 raw edges. The product repository was not scanned. `--code-only` avoids semantic LLM extraction; `--no-cluster` leaves the raw extraction for the following clustering/report pass. `cluster-only --no-label` produced:
 
 - `../legacy-demo-app/graphify-out/graph.json`
 - `../legacy-demo-app/graphify-out/GRAPH_REPORT.md`
 - `../legacy-demo-app/graphify-out/graph.html`
 
-Graphify also created its native cache, manifest, marker, and analysis metadata under `graphify-out/`. Keep these outputs in Graphify's own format. Running `npm run graphify:analyze` repeats the same targeted workflow and checks for the three primary artifacts. A different repository can be passed as the runner's first argument.
+Graphify also created its native cache, manifest, marker, and analysis metadata under `graphify-out/`. Keep these outputs in Graphify's own format. Running `npm run graphify:analyze -- <target>` (or `npx reversa graph build` from inside the target) repeats the same targeted workflow and checks for the three primary artifacts. The runner defaults to the current directory and refuses to analyze the Reversa package itself.
 
 Observed count caveat: the generated report says `21 nodes · 33 edges`, while the final `graph.json` contained 34 `links` on the subsequent validation run. The first immediate post-clustering inspection counted 33 links. Treat Graphify's current report/JSON count mismatch as native output behavior to investigate separately; the runner preserves both artifacts and does not rewrite either.
 
@@ -50,3 +50,15 @@ graphify affected findById --graph ../legacy-demo-app/graphify-out/graph.json
 ## Bounded migration impact candidate
 
 The strongest direct impact set for a behavior change to `findById` is its two production callers, `createOrder()` and `describeProduct()`. A bounded experiment can change only the utility's callback contract, adapt those callers, and rerun the six legacy tests. Keep the catalog and externally observed order/report behavior as controls. This is an analysis recommendation only; no migration has been performed.
+
+## Re-verification on 0.9.95
+
+Re-run on 2026-10-24 with `graphify 0.9.95` (installed with `uv tool install graphifyy`) against an equivalent 7-file `legacy-demo-app`:
+
+- `extract <t> --code-only --no-cluster` and `cluster-only <t> --no-label` still exist and behave as above. Output is still `<t>/graphify-out/{graph.json, GRAPH_REPORT.md, graph.html}` plus cache and manifest files.
+- The `graph.json` shape is unchanged (`directed: false`, `multigraph: true`, `graph.schema_version: 1`, `nodes`, `links`, `hyperedges`). It adds a top-level `built_at_commit`. Node and link fields are as documented, and the `findById` callers still resolve as `order_service_createorder` and `report_describeproduct`.
+- **New relation `indirect_call`** (`confidence: INFERRED`, `confidence_score: 0.85`, `context: "collection"`). It points from a file node to a symbol exported in a collection (for example `module.exports = { findById }`). The context adapter reports it as an unverified relation and does not follow it.
+- **Incremental extraction can change node ids.** Re-running `extract` on a target that already has `graphify-out/` minted a node with an absolute-path id (`private_tmp_…_catalog_products`) for an import that a fresh run resolves to `catalog_products`. A fresh run and `--force` / `GRAPHIFY_FORCE=1` both produce the stable id. The runner sets `GRAPHIFY_FORCE=1`, so snapshots taken by successive builds stay comparable in graph-diff.
+- `extract` accepts repeatable `--exclude <pattern>` (gitignore-style, anchored at the scan root), although `graphify --help` does not list it. Graphify persists the list in `graphify-out/` and reuses it when the flag is omitted. Without excludes, a target with Reversa installed indexed its skills and toolkit (3061 nodes from 214 files, against 20 nodes from the app's 7 files). The runner passes `.reversa/`, `_reversa_*/`, `.claude/skills/`, `.agents/skills/` and `.kiro/skills/`.
+- `python -m graphify` works when the package is installed into that interpreter (it ships `__main__.py`), which is the fallback when a pip `--user` install leaves `graphify` off PATH.
+- `graphify install --project --platform claude` writes `.claude/skills/graphify/`, appends a `## graphify` section to the project-root `CLAUDE.md`, writes `.claude/CLAUDE.md` and registers PreToolUse hooks in `.claude/settings.json`. `--platform agents` writes only `.agents/skills/graphify/`, and `--platform kiro` writes `.kiro/skills/graphify/` plus `.kiro/steering/graphify.md`. Reversa renders these in a temporary folder and copies only the skill folder.

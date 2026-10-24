@@ -39,6 +39,10 @@ Execute as tarefas do plano **sequencialmente, uma por vez**:
 3. Após conclusão: salve checkpoint em `.reversa/state.json` seguindo `references/checkpoint-guide.md` e marque a tarefa com ✅ em `.reversa/plan.md`.
 4. Apresente resumo breve do que foi gerado.
 
+**Ação especial antes do Scout (grafo de conhecimento):**
+
+Se `.reversa/state.json` → `graph.enabled` for `true`, construa o grafo antes de iniciar o Scout: `node .reversa/tools/graph/bin/reversa-graph.js build` (detalhes em `reversa-graph/SKILL.md`, pasta irmã). Em re-extrações, o mesmo comando atualiza o snapshot `latest` e preserva o `baseline` da primeira extração. Se o build falhar ou `graph.enabled` for `false`, informe "grafo indisponível" uma vez e siga sem ele: nenhum agente depende do grafo.
+
 **Ação especial após o Scout:**
 
 1. Leia `.reversa/context/surface.json` e atualize a Fase 2 de `.reversa/plan.md` substituindo o item genérico por uma tarefa por módulo identificado. Exemplo:
@@ -47,6 +51,8 @@ Execute as tarefas do plano **sequencialmente, uma por vez**:
 - [ ] **Archaeologist** — Análise do módulo `orders`
 - [ ] **Archaeologist** — Análise do módulo `payments`
 ```
+
+   Se `surface.json` tiver o bloco `knowledge_graph`, compare as comunidades do grafo com os módulos por pasta. Quando uma comunidade atravessar várias pastas (ou uma pasta se dividir em comunidades distintas), mencione isso no checkpoint abaixo como sugestão de agrupamento. A lista de módulos só muda se o usuário pedir.
 
 2. **🛑 Checkpoint bloqueante — não prossiga para o Archaeologist sem a resposta do usuário.**
 
@@ -57,6 +63,7 @@ Apresente ao usuário um resumo do que o Scout encontrou e as três opções de 
 > - **Linguagem principal:** [linguagem]
 > - **[N] integrações externas** detectadas (ou: nenhuma)
 > - **Banco de dados:** [presente/ausente]
+> - **Grafo de código:** [N] comunidades — [as maiores, com seus arquivos] (ou: indisponível)
 >
 > Qual nível de documentação você quer para este projeto?
 >
@@ -129,7 +136,9 @@ Após o **último agente do plano** concluir e antes de declarar a extração fi
 
 A verificação compara cada watch item declarado em `_reversa_forward/<feature>/regression-watch.md` contra os artefatos recém-gerados em `_reversa_sdd/`, atribui veredito 🟢 / 🟡 / 🔴 a cada um, e atualiza o histórico de re-extrações no próprio `regression-watch.md`. Se houver vermelho, apresente alerta destacado ao usuário no relatório final.
 
+Com o grafo habilitado e um snapshot `baseline` existente, gere também `node .reversa/tools/graph/bin/reversa-graph.js diff baseline latest --out=_reversa_sdd/graph-diff.md` e cite no relatório final as arestas `calls` removidas ou adicionadas desde a primeira extração. É evidência estrutural, não veredito: o veredito continua vindo dos watch items.
+
 ## Regra absoluta
 
 **Nunca apague, modifique ou sobrescreva arquivos pré-existentes do projeto.**
-O Reversa escreve APENAS em `.reversa/`, `_reversa_sdd/` e em `_reversa_forward/<feature>/regression-watch.md` (apenas seção de histórico, nunca a tabela principal).
+O Reversa escreve APENAS em `.reversa/`, `_reversa_sdd/`, `graphify-out/` (saída nativa do Graphify, quando o grafo está habilitado) e em `_reversa_forward/<feature>/regression-watch.md` (apenas seção de histórico, nunca a tabela principal).

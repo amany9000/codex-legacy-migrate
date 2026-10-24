@@ -238,6 +238,11 @@ nav:
       - Overview: pricing/index.md
     - Front-end Team (Impeccable):
       - Overview: frontend/index.md
+    - Knowledge Graph (Graphify):
+      - Overview: graph/index.md
+      - Graphify contract: graphify-contract.md
+      - Context adapter: graphify-context-adapter.md
+      - Graph diff: graph-diff.md
     - Documentation Team:
       - Overview: documentation/index.md
       - The 4 visual agents: documentation/agentes.md

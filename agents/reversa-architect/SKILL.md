@@ -48,6 +48,7 @@ O campo `doc_level` do state.json controla o que gerar:
 ### 3. Diagrama C4 — Componentes (Nível 3)
 - Para os containers mais relevantes
 - Componentes internos e responsabilidades
+- Com o grafo habilitado (`graph.enabled` em `.reversa/state.json`), use as comunidades e os hubs de `knowledge_graph` (`surface.json`) como evidência para os limites dos componentes, e as arestas entre comunidades para as setas. Quando o diagrama divergir do grafo, registre o motivo (receita em `reversa-graph/references/graph-usage.md`, pasta irmã).
 
 ### 4. ERD Completo
 - Todas as entidades com atributos principais
@@ -67,6 +68,7 @@ O campo `doc_level` do state.json controla o que gerar:
 
 ### 7. Spec Impact Matrix
 Crie `_reversa_sdd/traceability/spec-impact-matrix.md`: qual componente impacta qual.
+Com o grafo habilitado, derive o impacto de `node .reversa/tools/graph/bin/reversa-graph.js context "<símbolo>"` (campo `impact`) para os símbolos centrais de cada componente, e marque cada célula como confirmada pelo grafo ou inferida.
 
 ## Saída
 

@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reversa Graph"
+  short_description: "Constrói e consulta o grafo de conhecimento do código legado…"
+policy:
+  allow_implicit_invocation: false

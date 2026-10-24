@@ -36,6 +36,7 @@ Os dados podem vir de:
 
 - **JSON inline**: usuário fornece `modules.json` (lista de módulos) e/ou `deps.json` (grafo de dependências).
 - **Caminho de arquivo**: usuário aponta para JSONs em `_reversa_docs/assets/data/` (gerados pelo agente `/reversa-documentation`).
+- **Grafo de código**: se não houver `deps.json` e o grafo estiver habilitado (`graph.enabled` em `.reversa/state.json`), gere-o com `node .reversa/tools/graph/bin/reversa-graph.js deps --out=_reversa_docs/assets/data/deps.json` (dependências reais entre arquivos, `weight` = número de arestas; use `--level=symbol` para o Call Graph 3D).
 - **Solicitado ao usuário**: se a skill é invocada sem dados, perguntar caminho ou pedir colagem inline.
 
 **Schema esperado de `modules.json`**:

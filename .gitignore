@@ -3,3 +3,11 @@ node_modules/
 .env
 .env.*
 !.env.example
+*.log
+dist/
+.claude/
+site/
+.npm-cache/
+.tmp-mkdocs-site/
+specs/
+graphify-out/

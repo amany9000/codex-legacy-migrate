@@ -14,5 +14,12 @@
   "checkpoints": {},
   "engines": [],
   "agents": [],
+  "graph": {
+    "enabled": false,
+    "requested": false,
+    "cli_version": null,
+    "command": null,
+    "out_dir": "graphify-out"
+  },
   "created_files": []
 }

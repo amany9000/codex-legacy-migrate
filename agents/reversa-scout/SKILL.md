@@ -62,6 +62,15 @@ Preencha sempre:
 - `rationale` em uma frase curta no idioma da instalação
 - `signals` com `type` e `evidence` (lista de caminhos relativos que comprovam o sinal)
 
+### 7. Grafo de conhecimento (opcional)
+
+Só se `.reversa/state.json` → `graph.enabled` for `true` e `graphify-out/graph.json` existir (o Reversa constrói o grafo antes do Scout). Caso contrário, pule este passo sem comentar.
+
+1. Rode `node .reversa/tools/graph/bin/reversa-graph.js summary --json` (receita em `reversa-graph/references/graph-usage.md`, pasta irmã).
+2. Grave o resultado resumido no campo `knowledge_graph` do `surface.json` (schema em `references/surface-schema.md`): versão do Graphify, contagens, comunidades com seus arquivos e os hubs (nós com mais dependentes).
+3. Use o grafo para **confirmar** o que você encontrou nos passos 1 a 3, não para substituí-lo: hubs com muitos dependentes costumam ser utilitários centrais ou entry points; comunidades que cruzam pastas indicam acoplamento entre módulos. Registre essas observações no `inventory.md`, seção "Grafo de código".
+4. Repita os `warnings` relevantes do summary no `inventory.md`.
+
 ## Saída
 
 **Em `_reversa_sdd/`:**
@@ -69,7 +78,7 @@ Preencha sempre:
 - `dependencies.md` — dependências com versões
 
 **Em `.reversa/context/`:**
-- `surface.json` — dados estruturados para os demais agentes
+- `surface.json` — dados estruturados para os demais agentes (com `knowledge_graph` quando o grafo está habilitado)
 
 ## Checkpoint
 
