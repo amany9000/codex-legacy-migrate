@@ -70,6 +70,54 @@ graphify-runner.js ── offline extract (no LLM) ──► graphify-out/{graph
                                                       Dashboard
 ```
 
+---
+
+## 🛡️ Security & Structural Risk Scoring (`Codex Security` × `Graphify`)
+
+Standard static analysis scans files in isolation—it cannot tell you if a vulnerability sits inside a high-centrality **"God Node"** where a single exploit or refactoring bug will cascade across dozens of downstream modules. 
+
+**`graph-propagate`** combines **Codex Security (`$codex-security` / `@openai/codex-security`)** with **Graphify's AST Knowledge Graph (`graphify-out/graph.json`)** to compute a deterministic **0–100 Risk Score**, **Security Posture Grade (`F` to `A+`)**, and **Ranked Pain-Point Leaderboard** both *before* and *after* migration.
+
+### 1. The 4-Pillar Risk Scoring Formula
+
+Every module in the knowledge graph—and the repository as a whole—is scored on a `0–100` scale (`100` = Maximum Legacy Risk, dropping toward `0` as migration waves are verified):
+
+$$\text{Risk Score (0–100)} = 0.45(V_{\text{CodexSec}}) + 0.30(B_{\text{Graphify}}) + 0.15(E_{\text{Inferred}}) + 0.10(D_{\text{Parity}})$$
+
+| Pillar | Weight | Source | What It Measures |
+| :--- | :--- | :--- | :--- |
+| **1. Vulnerability Exposure ($V_{\text{CodexSec}}$)** | **45%** | **Codex Security Plugin** | CWE / OWASP findings per module (`CRITICAL` = 40 pts, `HIGH` = 25 pts, `MEDIUM` = 14 pts, `LOW` = 6 pts). |
+| **2. Structural Blast Radius ($B_{\text{Graphify}}$)** | **30%** | **Graphify `graph.json`** | Node centrality (`inDegree` callers, `outDegree` dependencies, and `isGodNode` status). Vulnerabilities inside a God Node receive a **Compound Pain-Point Multiplier**. |
+| **3. Epistemic / Dynamic Risk ($E_{\text{Inferred}}$)** | **15%** | **Graphify Edge Confidence** | Ratio of `INFERRED` and `AMBIGUOUS` edges (e.g., reflection, dynamic dispatch, untyped runtime calls) vs. AST-guaranteed `EXTRACTED` edges. |
+| **4. Verification Deficit ($D_{\text{Parity}}$)** | **10%** | **Migration & Parity State** | Starts at `100` for unmigrated/untested legacy modules and drops to `0` once migrated and verified clean by post-migration security & parity checks. |
+
+---
+
+### 2. Multi-Mode Security Execution (Methods A, B & C)
+
+The security and risk engine works seamlessly across three execution modes:
+
+* **Method C — In-Session Codex Skill (`/plugins install codex-security`):**
+  During skill-based migration (`/reversa-migrate` / `$reversa-security`), the agent invokes the Codex Security skill directly inside the session, writes normalized CWE findings to `.reversa/security-pre.json` (legacy baseline) and `.reversa/security-post.json` (migrated target), and triggers `src/security/risk-scorer.js`.
+* **Method A — Programmatic SDK (`@openai/codex-security`):**
+  When triggered from Node.js or the Live Control Tower UI, `src/security/codex-security-runner.js` dynamically invokes the `@openai/codex-security` SDK.
+* **Method B — CLI & Deterministic CWE AST Fallback:**
+  Supports `npx @openai/codex-security scan` subprocess execution plus a built-in static CWE pattern scanner (`CWE-89` Injection, `CWE-798` Hardcoded Secrets, `CWE-120` Buffer/Memory hazards, `CWE-362` Race Conditions, `CWE-470` Unsafe Dynamic Dispatch, `CWE-327` Weak Crypto) so offline demos and CI pipelines never fail.
+
+---
+
+### 3. Live Control Tower Dashboard (`http://localhost:4400`)
+
+Launch the interactive **Migration & Security Control Tower** to visualize your codebase's dependency graph, blast radius, and CWE pain points in real time:
+
+```bash
+# Run a standalone security + Graphify blast-radius audit in the terminal
+npm run security:scan
+
+# Launch the Live Control Tower Dashboard on http://localhost:4400
+npm run dashboard
+
+
 ## Installation
 
 Prerequisites: Node.js 21+ (Node.js 22.13+ if you run the security scans), Python 3.10+ with [`uv`](https://docs.astral.sh/uv/) (Graphify).
@@ -112,6 +160,8 @@ When Graphify is enabled, the orchestrator builds the graph before the Scout run
 | Rebuild the legacy on a modern stack | `/reversa-migrate` |
 | Evolve the system one feature at a time | `/reversa-forward` |
 | Render specs as an HTML mini-site | `/reversa-docs` |
+| **Codex Security × Graphify Risk Scorer** — Joins `$codex-security` CWE findings with `graphify-out/graph.json` blast radius to output a `0–100` Risk Score, Security Grade (`F` to `A+`), and Pain-Point Register. |`/reversa-security` (or `npm run security:scan`) |
+| **Live Control Tower (`http://localhost:4400`)** — Interactive dependency graph with a **Security Risk Heatmap toggle**, 4-pillar node inspector, and live Pre/Post-migration risk delta. |  `npm run dashboard` (`reversa dashboard`) |
 
 The full agent catalog (Ideation, Forward, Pricing, Front-end, Bug, Code Quality and Documentation teams) is inherited unchanged from [Reversa](https://github.com/sandeco/reversa).
 
