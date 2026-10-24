@@ -1,44 +1,28 @@
----
-schemaVersion: 1
-generatedAt: <ISO-8601>
-reversa:
-  version: "x.y.z"
-kind: risk_register
-producedBy: strategist
-hash: "sha256:<hash do corpo abaixo do front-matter>"
----
+# Migration & Security Risk Register
 
-# Risk Register
+> Generated from a full-repository Codex Security scan and the active Graphify graph.
 
-> Registro de riscos da migração com probabilidade, impacto, mitigação e responsável.
+## Repository posture
 
-## Riscos
+| Metric | Pre-migration baseline | Post-migration scan | Status |
+|---|---:|---:|---|
+| Composite risk (0–100) | `{{PRE_RISK_SCORE}}` | `{{POST_RISK_SCORE}}` | `{{SCAN_STATUS}}` |
+| Security risk (0–100) | `{{PRE_SECURITY_SCORE}}` | `{{POST_SECURITY_SCORE}}` | `{{COVERAGE_STATUS}}` |
+| Grade | `{{PRE_GRADE}}` | `{{POST_GRADE}}` | `{{MIGRATION_STATUS}}` |
+| Findings | `{{PRE_FINDING_COUNT}}` | `{{POST_FINDING_COUNT}}` | `{{OPEN_REMEDIATED_UNVERIFIED}}` |
+| Graphify token reduction | `{{TOKEN_REDUCTION}}` | `{{GRAPH_STATUS}}` | `{{GRAPH_SOURCE}}` |
 
-### RISK-001
-- **Descrição**: <texto>
-- **Categoria**: técnico | operacional | organizacional | regulatório | financeiro
-- **Probabilidade**: baixa | média | alta
-- **Impacto**: baixo | médio | alto | crítico
-- **Severidade combinada**: <calculada a partir dos dois acima>
-- **Trigger / sinal de alerta**: <o que indicaria que o risco está se materializando>
-- **Mitigação**: <ações concretas>
-- **Plano de contingência**: <se mitigação falhar>
-- **Owner**: <nome / papel>
-- **Status**: aberto | mitigando | aceito | encerrado
+## Risk scoring
 
-<repetir por risco>
+1. **Vulnerability severity (45%)**: normalized Codex Security findings from the whole repository.
+2. **Graph blast radius (30%)**: node degree and God-node centrality from Graphify.
+3. **Graph uncertainty (15%)**: incident edges marked `INFERRED` or `AMBIGUOUS`.
+4. **Verification deficit (10%)**: remains until Reversa migration is complete and a complete post scan verifies the node clean.
 
-## Resumo por severidade
+A missing graph makes the composite graph-weighted score unavailable; it does not hide the full-repository security findings. Findings without an exact Graphify file match remain in the repository totals as unmapped findings. Only a finding absent from a completed, fully covered post scan is marked remediated.
 
-| Severidade | Quantidade | IDs |
-|---|---|---|
-| Crítica | | |
-| Alta | | |
-| Média | | |
-| Baixa | | |
+## Ranked pain points
 
-## Riscos relacionados ao paradigma alvo
-
-> Subseção dedicada quando há mudança de paradigma. Listar apenas riscos cuja origem direta é o gap registrado em `paradigm_decision.md`.
-
-- <RISK-XXX: descrição>
+| ID | Graph node | File | CWE | Severity | Category | Status | Remediation |
+|---|---|---|---|---|---|---|---|
+| `{{ID}}` | `{{NODE}}` | `{{FILE}}:{{LINE}}` | `{{CWE}}` | `{{SEVERITY}}` | `{{CATEGORY}}` | `{{STATUS}}` | `{{REMEDIATION}}` |

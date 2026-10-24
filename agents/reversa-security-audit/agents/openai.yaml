@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reversa Security Audit"
+  short_description: "Runs full-repository Codex Security scans and reports graph-weighted risk"
+policy:
+  allow_implicit_invocation: false

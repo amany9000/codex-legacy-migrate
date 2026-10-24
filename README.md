@@ -1,488 +1,346 @@
-# Reversa 
-<small>by sandeco</small>
+# Graph Propagate
 
-**Turn legacy systems into executable specifications for AI agents.**
+**Graph-guided legacy migration for AI agents.**
+Graph Propagate is a fork of [Reversa](https://github.com/sandeco/reversa) that gives its agents a real, offline code graph ([Graphify](https://github.com/Graphify-Labs/graphify)) instead of making them read raw files, and wraps the migration in full-repository security scans, a local dashboard and an MCP server.
 
-> 📄 **Paper:** [Reversa: A Reverse Documentation Engineering Framework for Converting Legacy Software into Operational Specifications for AI Agents](https://arxiv.org/abs/2605.18684) — Macedo & da Costa, May 2026.
+<p align="center">
+  <img src="docs/img/grsphify.png" alt="Graphify knowledge graph of the migrated project" width="800"><br>
+  <em>Graphify knowledge graph, grouped by community</em>
+</p>
 
-[![Reversa paper](https://raw.githubusercontent.com/sandeco/reversa/main/docs/img/reversa-paper.png)](https://arxiv.org/abs/2605.18684)
+## Links
 
-[![English Docs](https://img.shields.io/badge/DOCS-English-009c3b?style=for-the-badge&logo=material-for-mkdocs&logoColor=white&labelColor=2d2d2d)](https://sandeco.github.io/reversa/)<br>
-[![Português Docs](https://img.shields.io/badge/DOCS-Portugu%C3%AAs-ffcc00?style=for-the-badge&logo=material-for-mkdocs&logoColor=black&labelColor=2d2d2d)](https://sandeco.github.io/reversa/pt/)<br>
-[![Español Docs](https://img.shields.io/badge/DOCS-Espa%C3%B1ol-c60b1e?style=for-the-badge&logo=material-for-mkdocs&logoColor=white&labelColor=2d2d2d)](https://sandeco.github.io/reversa/es/)
+| What | Link |
+|---|---|
+| Main repo (`codex-legacy-migrate`) | https://github.com/amany9000/codex-legacy-migrate |
+| Repo used for migration, and the migrated result (NanoHTTPD) | https://github.com/amany9000/nanohttpd |
+| Migration MCP repo | https://github.com/adarshsaraf1234/migration-mcp |
+| Graphify MCP (hosted) | https://migration-mcp-trial-production.up.railway.app/mcp |
+| npm package published URL | https://www.npmjs.com/package/graph-propagate/v/1.4.0
+ |
 
-Reversa is a specification reverse-engineering framework. Install it inside a legacy project and it coordinates a team of specialized AI agents to analyze the existing code and generate complete, traceable specifications ready for use by any coding agent.
+---
+
+## Why this fork exists
+
+<p align="center">
+  <img src="docs/img/reversa-paper.png" alt="Reversa paper" width="500"><br>
+  <em>Reversa: the framework Graph Propagate builds on (Macedo &amp; da Costa, May 2026)</em>
+</p>
+
+Reversa turns a legacy system into executable specifications, but its agents (Scout, Archaeologist, Detective, Architect, Migrate team) work by having an LLM read raw files one module at a time:
+
+- `modules.json.dependencies` is **inferred by the model**, not parsed.
+- Large repos overflow context and the Archaeologist stalls.
+- Nothing produces a real call graph (`reversa-arquitetura-3d` waits for a `deps.json` nobody generates).
+- Nothing checks what a migrated slice actually changed, or whether it introduced security regressions.
+
+This fork adds the missing structure and the missing safety checks. **Without Graphify installed, everything runs exactly as upstream Reversa.**
+
+## What this fork adds
+
+| Capability | What it does |
+|---|---|
+| **Graph layer** | Offline tree-sitter AST graph (`graph.json`, `GRAPH_REPORT.md`, `graph.html`) with zero LLM calls |
+| **`reversa graph` CLI** | Shell interface agents use: `build`, `snapshot`, `summary`, `context`, `deps`, `diff` |
+| **`/reversa-graph` skill** | One shared instruction set so Graphify guidance isn't copied into every agent |
+| **Graph-aware pipeline** | Scout, Archaeologist, Detective, Architect, Reviewer and the Migrate team query the graph first and fall back to raw reads only when needed |
+| **Security audit** | Full-repository Codex Security scans before and after migration, with Graphify-weighted risk |
+| **Dashboard** | Local, read-only view of Reversa state and security posture |
+| **Migration MCP** | stdio MCP server exposing graph analysis, bounded context and graph diff to any MCP client |
+
+## Architecture
+
+```
+Legacy repo
+    │
+    ▼
+graphify-runner.js ── offline extract (no LLM) ──► graphify-out/{graph.json, GRAPH_REPORT.md, graph.html}
+    │                                                     │
+    │                                   ┌─────────────────┴──────────────────┐
+    │                              graph-context.js                    graph-diff.js
+    │                          (context · summary · deps)          (diff baseline latest)
+    │                                   └─────────────────┬──────────────────┘
+    ▼                                                     ▼
+ Migration MCP  ◄──────────────────────────────  `reversa graph <cmd>`
+ (any MCP client)                                          │
+                                                           ▼
+        Scout → Archaeologist → Detective → Architect → Writer → Reviewer → Migrate
+                                                           │
+                                  security-scan --phase pre ... --phase post
+                                                           │
+                                                      Dashboard
+```
 
 ---
 
-![Reversa installer](https://raw.githubusercontent.com/sandeco/reversa/main/docs/img/reversa-installer.png)
+## 🛡️ Security & Structural Risk Scoring (`Codex Security` × `Graphify`)
+
+Standard static analysis scans files in isolation—it cannot tell you if a vulnerability sits inside a high-centrality **"God Node"** where a single exploit or refactoring bug will cascade across dozens of downstream modules. 
+
+**`graph-propagate`** combines **Codex Security (`$codex-security` / `@openai/codex-security`)** with **Graphify's AST Knowledge Graph (`graphify-out/graph.json`)** to compute a deterministic **0–100 Risk Score**, **Security Posture Grade (`F` to `A+`)**, and **Ranked Pain-Point Leaderboard** both *before* and *after* migration.
+
+### 1. The 4-Pillar Risk Scoring Formula
+
+Every module in the knowledge graph—and the repository as a whole—is scored on a `0–100` scale (`100` = Maximum Legacy Risk, dropping toward `0` as migration waves are verified):
+
+$$\text{Risk Score (0–100)} = 0.45(V_{\text{CodexSec}}) + 0.30(B_{\text{Graphify}}) + 0.15(E_{\text{Inferred}}) + 0.10(D_{\text{Parity}})$$
+
+| Pillar | Weight | Source | What It Measures |
+| :--- | :--- | :--- | :--- |
+| **1. Vulnerability Exposure ($V_{\text{CodexSec}}$)** | **45%** | **Codex Security Plugin** | CWE / OWASP findings per module (`CRITICAL` = 40 pts, `HIGH` = 25 pts, `MEDIUM` = 14 pts, `LOW` = 6 pts). |
+| **2. Structural Blast Radius ($B_{\text{Graphify}}$)** | **30%** | **Graphify `graph.json`** | Node centrality (`inDegree` callers, `outDegree` dependencies, and `isGodNode` status). Vulnerabilities inside a God Node receive a **Compound Pain-Point Multiplier**. |
+| **3. Epistemic / Dynamic Risk ($E_{\text{Inferred}}$)** | **15%** | **Graphify Edge Confidence** | Ratio of `INFERRED` and `AMBIGUOUS` edges (e.g., reflection, dynamic dispatch, untyped runtime calls) vs. AST-guaranteed `EXTRACTED` edges. |
+| **4. Verification Deficit ($D_{\text{Parity}}$)** | **10%** | **Migration & Parity State** | Starts at `100` for unmigrated/untested legacy modules and drops to `0` once migrated and verified clean by post-migration security & parity checks. |
 
 ---
 
-## Why Reversa exists
+### 2. Multi-Mode Security Execution (Methods A, B & C)
 
-Most production systems carry years of accumulated knowledge: implicit business rules, undocumented architectural decisions, critical logic buried in code nobody wants to touch. That knowledge exists, but it's trapped.
+The security and risk engine works seamlessly across three execution modes:
 
-AI agents are transformative for creating and evolving software, but they depend on specifications to operate safely. For new systems, you write the spec and the agent executes. For legacy systems — or those built with pure vibe coding — there is no spec: the agent has no way of knowing what it cannot break.
-
-**Reversa is the bridge between the legacy system and AI agents.**
-
-It analyzes the existing code, extracts accumulated knowledge (business rules, flows, module contracts, retroactive architectural decisions) and transforms everything into executable, traceable specifications ready for any coding agent.
-
-The result is not documentation for humans to read. These are **operational contracts** that allow an agent to evolve the system with fidelity to what already exists.
+* **Method C — In-Session Codex Skill (`/plugins install codex-security`):**
+  During skill-based migration (`/reversa-migrate` / `$reversa-security`), the agent invokes the Codex Security skill directly inside the session, writes normalized CWE findings to `.reversa/security-pre.json` (legacy baseline) and `.reversa/security-post.json` (migrated target), and triggers `src/security/risk-scorer.js`.
+* **Method A — Programmatic SDK (`@openai/codex-security`):**
+  When triggered from Node.js or the Live Control Tower UI, `src/security/codex-security-runner.js` dynamically invokes the `@openai/codex-security` SDK.
+* **Method B — CLI & Deterministic CWE AST Fallback:**
+  Supports `npx @openai/codex-security scan` subprocess execution plus a built-in static CWE pattern scanner (`CWE-89` Injection, `CWE-798` Hardcoded Secrets, `CWE-120` Buffer/Memory hazards, `CWE-362` Race Conditions, `CWE-470` Unsafe Dynamic Dispatch, `CWE-327` Weak Crypto) so offline demos and CI pipelines never fail.
 
 ---
+
+### 3. Live Control Tower Dashboard (`http://localhost:4400`)
+
+Launch the interactive **Migration & Security Control Tower** to visualize your codebase's dependency graph, blast radius, and CWE pain points in real time:
+
+```bash
+# Run a standalone security + Graphify blast-radius audit in the terminal
+npm run security:scan
+
+# Launch the Live Control Tower Dashboard on http://localhost:4400
+npm run dashboard
+
 
 ## Installation
 
-In the root of the legacy project:
+Prerequisites: Node.js 21+ (Node.js 22.13+ if you run the security scans), Python 3.10+ with [`uv`](https://docs.astral.sh/uv/) (Graphify).
 
 ```bash
-npx reversa install
+# 1. Install the Graphify CLI (Reversa never installs Python packages itself)
+uv tool install graphifyy
+
+# 2. Clone this fork
+git clone https://github.com/amany9000/codex-legacy-migrate.git
+
+# 3. In the root of the legacy project
+node /path/to/codex-legacy-migrate/bin/reversa.js install
 ```
 
-The installer will:
-1. Detect the AI engines present in the environment (Claude Code, Codex, Cursor, etc.)
-2. Ask which agents to install — all selected by default
-3. Collect project name, language, and preferences
-4. Copy agents to `.agents/skills/` (and `.claude/skills/` for Claude Code)
-5. Create the engine entry file (`CLAUDE.md`, `AGENTS.md`, etc.)
-6. Create the `.reversa/` structure with state, configuration, and plan
-7. Generate SHA-256 manifest for safe updates
+<p align="center">
+  <img src="docs/img/reversa-installer.png" alt="Reversa installer" width="700"><br>
+  <em>The installer detects your AI engines and sets up the agents</em>
+</p>
 
-> Reversa **never deletes or modifies** existing files in your project.
-> Agents write only to `.reversa/` and the output folder (`_reversa_sdd/` by default).
+The installer detects the AI engines in your environment (Claude Code, Codex, Cursor, etc.), copies the Reversa agents to `.agents/skills/` (and `.claude/skills/` for Claude Code), creates the engine entry file and the `.reversa/` structure, and, if you enable Graphify integration, runs `graphify install` for each detected engine and records the choice in `.reversa/state.json`.
 
-**Requirements:** Node.js 18+
+Reversa never deletes or modifies existing files in your project. Agents write only to `.reversa/` and the output folder (`_reversa_sdd/` by default).
 
----
+## Quick start
 
-> [!IMPORTANT]
-> ### 🔒 Guaranteed immutability of the legacy project
->
-> The installer only creates new files (`CLAUDE.md`, `AGENTS.md`, `.agents/skills/`, etc.) and **never modifies or deletes any existing file** in your project. During analysis, agents operate under a strict and inviolable directive: **all writes are restricted to `.reversa/` and `_reversa_sdd/`** — no other file in your project is touched.
-
-> [!CAUTION]
-> ### 💾 Back up your project before starting
->
-> Although Reversa never modifies your files, AI agents can make mistakes. **We strongly recommend:**
->
-> 1. **Version the project in Git** — make sure all files are committed before starting the analysis
-> 2. **Have the repository on GitHub** (or GitLab, Bitbucket) — so you have a safe remote copy
-> 3. **Make a local copy of the folder** — a simple `cp -r my-project my-project-backup` protects against any unexpected event
->
-> If something unexpected happens during analysis, you can restore the original state with `git restore .` or from the backup copy.
-
-> [!WARNING]
-> 🔑 **Reversa does not request, store, or transmit API keys from any LLM service.** All intelligence is delegated to the AI agent already present in your environment (Claude Code, Codex, Cursor, etc.) — no external authentication dependencies.
-
----
-
-## How to use
-
-After installation, open the project in the AI agent and activate Reversa:
+Open the project in your AI agent and run:
 
 ```
-/reversa
+/reversa            # engines without slash commands (e.g. Codex): reversa
 ```
 
-For engines without slash command support (like Codex):
-
-```
-reversa
-```
-
-Reversa will introduce itself, create a personalized exploration plan, and coordinate the entire analysis. Progress is saved in `.reversa/state.json` at each checkpoint — if the session is interrupted, just type `reversa` to resume where you left off.
-
-For other workflows, use the matching entry command:
+When Graphify is enabled, the orchestrator builds the graph before the Scout runs and shows graph communities next to the folder-based module list at the existing blocking checkpoint.
 
 | Goal | Command |
-|------|---------|
-| Analyze an existing legacy and produce specs | `/reversa` |
-| Run the same analysis end to end, without intermediate stops | `/reversa-autonomous` |
-| Start a brand new project from a one-line idea | `/reversa-new` (add `expresso` to go all the way to code) |
-| Evolve the system one feature at a time, from spec to code | `/reversa-forward` |
-| Implement a queue of features (e.g. features 10 to 20) end to end, without stops | `/reversa-forward-autonomous` |
-| Add a short amendment to the feature you just delivered | `/reversa-add` |
-| Converge a delivered feature back into the extraction | `/reversa-sync` |
+|---|---|
+| Analyze a legacy system and produce specs | `/reversa` |
+| Same, end to end without intermediate stops | `/reversa-autonomous` |
+| Build, update or inspect the graph | `/reversa-graph build \| update \| status` |
 | Rebuild the legacy on a modern stack | `/reversa-migrate` |
-| Render the extracted knowledge as an HTML mini-site | `/reversa-docs` |
-| Track and fix defects with causal traceability | `/reversa-debugger`, `/reversa-debugger-fix` |
-| Price your software or a feature: sale model, billing profile, size and three scenarios | `/reversa-pricing` |
-| Design, critique, audit or polish a frontend interface (Impeccable) | `/impeccable` |
+| Evolve the system one feature at a time | `/reversa-forward` |
+| Render specs as an HTML mini-site | `/reversa-docs` |
+| **Codex Security × Graphify Risk Scorer** — Joins `$codex-security` CWE findings with `graphify-out/graph.json` blast radius to output a `0–100` Risk Score, Security Grade (`F` to `A+`), and Pain-Point Register. |`/reversa-security` (or `npm run security:scan`) |
+| **Live Control Tower (`http://localhost:4400`)** — Interactive dependency graph with a **Security Risk Heatmap toggle**, 4-pillar node inspector, and live Pre/Post-migration risk delta. |  `npm run dashboard` (`reversa dashboard`) |
 
-Each orchestrator pauses between agents and asks for `CONTINUAR` before advancing, so you stay in control of every step.
+The full agent catalog (Ideation, Forward, Pricing, Front-end, Bug, Code Quality and Documentation teams) is inherited unchanged from [Reversa](https://github.com/sandeco/reversa).
 
-### Unattended runs
+## Graph CLI
 
-Three commands concentrate every question in a **single interview at the start** and then run without stopping, for sessions where nobody is watching the terminal (Claude Code YOLO mode or equivalent):
+Agents can only run shell commands, so the graph is exposed through `reversa graph`:
 
-- `/reversa-autonomous` — the full Discovery pipeline, same agents and same checkpoints as `/reversa`.
-- `/reversa-new expresso "<your idea>"` — greenfield from the idea all the way to implemented code, chaining into the forward cycle after the specs.
-- `/reversa-forward-autonomous` (new in 1.3.4): the forward cycle over a queue of features, from requirements to sync, one feature after another. It is the one to use with `/goal`, e.g. `/goal run /reversa-forward-autonomous on features 10 to 20, use the defaults`. It writes project code only through the coding phase and only where `.reversa/reversa-config.json` allows; with the policy blocked it stops before starting.
+| Command | Purpose |
+|---|---|
+| `reversa graph build` | Analyze the current folder offline and write `graphify-out/` |
+| `reversa graph snapshot <name>` | Save a named copy of the graph (e.g. `baseline`, `latest`) |
+| `reversa graph summary` | Communities, central nodes, counts |
+| `reversa graph context <symbol>` | Callers, callees and impact set for a symbol |
+| `reversa graph deps` | Emit the `deps.json` that `reversa-arquitetura-3d` expects |
+| `reversa graph diff baseline latest` | Structural changes between two snapshots |
 
-The first two keep the non-destructive rule intact: writes stay inside `.reversa/` and the output folders, and no destructive or outward-facing command (delete, `git push`, publish, install) is ever run on its own. `/reversa-forward-autonomous` is the exception by design: its coding phase edits project code, only where `.reversa/reversa-config.json` allows, and runs the builds, tests and installs that `actions.md` explicitly asks for. Doubts that come up along the way are recorded with the 🟡 seal instead of interrupting the flow.
+The runner works on any language Graphify supports, does not require a `package.json`, checks that Graphify is installed first and forces offline mode.
 
----
+## How agents use the graph
 
-## How it works
+| Agent | Use |
+|---|---|
+| **Scout** | Records a graph summary in `surface.json.knowledge_graph` |
+| **Archaeologist** | Scopes each module with `context`; fills real dependencies into `modules.json` with a `source: graph \| inferred` marker |
+| **Detective / Architect** | Use callers and impact as evidence for flows, C4 components and `traceability/spec-impact-matrix.md` |
+| **Reviewer** | Validates module relationships against exact graph node IDs |
+| **Strategist** | Orders migration from impact sets, leaf modules first |
+| **Inspector** | Diffs the graph before and after each migrated slice and flags unexpected changes at the human checkpoint |
+| **3D view** | Reads `deps.json` from `reversa graph deps` |
 
-The Discovery pipeline (`/reversa`) is the heart of the framework: a 5-phase sequence orchestrated by the **Reversa** agent.
+Claims are labeled `EXTRACTED` (parsed from code) or `INFERRED`; agents prefer `EXTRACTED` and state which one each claim comes from. Every fallback to raw file reads is logged.
 
-```
-Reconnaissance  Excavation  Interpretation  Generation  Review
-    Scout       Archaeologist  Detective      Writer    Reviewer
-                                Architect
-```
+## Security audit
 
-Independent agents (run at any phase): **Visor**, **Data Master**, **Design System**, **Soul Extractor**, **Reconstructor**.
-
-Once the specs exist, you can move forward in three directions, depending on the goal:
-
-```
-Discovery (/reversa)
-        │
-        ├── /reversa-forward    Evolve the system from specs to code
-        ├── /reversa-migrate    Rebuild the legacy on a modern stack
-        └── /reversa-docs       Render specs as an HTML mini-site
-```
-
-For a **greenfield** project (no legacy to extract), start with `/reversa-new` instead. It walks from a one-line idea to SDD specs and then hands off to `/reversa-forward`.
-
----
-
-## Agents
-
-Reversa organizes its agents in **eleven specialized Teams**. The Discovery Team (Reversa Agents Core) and the Bug Agents are always installed; seven Teams are pre-checked in the installer and Translators are opt-in.
-
-| Team | Purpose | Entry command |
-|------|---------|---------------|
-| **Reversa Agents Core** (Discovery) | Analyze the existing legacy and produce specs | `/reversa` |
-| **Ideation Agents** | Clarify a raw idea before any development artifact exists, in greenfield or legacy | `/reversa-brainstorm` |
-| **Code New Project Agents** | Start a new project (greenfield) from a one-line idea and produce specs | `/reversa-new` |
-| **Code Forward Agents** | Evolve the system from specs to running code, one feature at a time | `/reversa-forward` |
-| **Migration Agents** | Turn legacy specs into a rebuild plan for a modern stack | `/reversa-migrate` |
-| **Pricing and Size Agents** | Decide how to sell, then price the product or each feature on top of the specs | `/reversa-pricing` |
-| **Front-end Team** (Impeccable) | Design, critique, audit and polish frontend interfaces with 24 design commands | `/impeccable` |
-| **Documentation Team** | Render the extracted knowledge as a self-contained HTML mini-site | `/reversa-docs` |
-| **Bug Agents** | Track, debate and fix defects with causal traceability to the specs | `/reversa-debugger` |
-| **Code Quality Agents** | Improve existing code without changing behavior: refactor, optimize, standardize, prune dead code | `/reversa-refactor` |
-
-### Discovery Team, required
-
-These run the main `/reversa` pipeline.
-
-| Agent | Role |
-|-------|------|
-| **Reversa** | Central orchestrator. Coordinates all agents, saves checkpoints, guides the user |
-| **Scout** | Maps the surface: folder structure, languages, frameworks, dependencies, entry points |
-| **Archaeologist** | Deep module-by-module analysis: algorithms, control flows, data structures |
-| **Detective** | Extracts implicit business knowledge: rules, retroactive ADRs, state machines, permissions |
-| **Architect** | Synthesizes everything into C4 diagrams, full ERD, integration map, and technical debt |
-| **Writer** | Generates specifications as operational contracts with code traceability |
-
-### Discovery Team, optional (installed by default)
-
-| Agent | Role |
-|-------|------|
-| **Reviewer** | Reviews specs, finds inconsistencies, and validates gaps with the user |
-| **Visor** | Documents the interface from screenshots, without needing the system to be running |
-| **Data Master** | Complete database analysis: DDL, migrations, ORM, ERD, triggers, procedures |
-| **Design System** | Extracts design tokens: colors, typography, spacing, themes, and components |
-| **Soul Extractor** | Produces a single executive Spec (`soul.md`) with purpose, core entities and founding decisions, useful right after Scout |
-| **Agents Help** | Explains every Reversa agent with analogies, useful for newcomers |
-| **Reconstructor** | Generates a bottom-up reconstruction plan from the specs and implements one task at a time, preserving tokens. Activation: `/reversa-reconstructor` |
-| **Autonomous** | Runs the same sequence as `/reversa` end to end, with a single interview at the start and no intermediate stops. Activation: `/reversa-autonomous` |
-
-### Ideation Agents (before anything is built)
-
-For the moment when the idea is still raw. Works in **both** scenarios: greenfield, and evolution of an existing legacy. Activate with `/reversa-brainstorm` and the orchestrator drives the pipeline `Framer → Explorer → Challenger → Arbiter → Pre-Spec`, with a `CONTINUAR` checkpoint between agents. Nothing here produces code.
-
-Artifacts live in one folder per session: `_reversa_sdd/brainstorms/<NNN>-<short-name>/`. The active session is tracked in `.reversa/active-ideation.json`. Final handoff goes to `/reversa-new` in greenfield, `/reversa-requirements` in legacy, or `/reversa-migrate` when the intent is a rebuild.
-
-| Agent | Role |
-|-------|------|
-| **Reversa Brainstorm** | Orchestrator. Detects greenfield vs legacy, opens the session folder, routes by physical stage. Writes no pipeline artifact itself |
-| **Framer** | Separates problem from solution and refuses to let a solution pass as a problem. Produces `framing.md` with the job to be done and the cost of doing nothing |
-| **Explorer** | Opens 3 to 5 materially distinct paths, always including "do not build" and "use something off the shelf". Forbidden from recommending. Produces `options.md` |
-| **Challenger** | Premortem, the assumption that kills each option, the cheap test for it, and the hidden cost in the legacy. Adversarial by design. Produces `risks.md` |
-| **Arbiter** | Scores the options against the risks and recommends one with an explicit trade-off. The choice stays human, and a divergence from the recommendation is recorded as such. Produces `decision.md` |
-| **Pre-Spec** | Turns the decision into the minimum package the next pipeline needs: minimum scope, non-goals, done criterion, open `[DOUBT]` markers. Writes no requirements and no architecture. Produces `pre-spec.md` |
-
-### Code New Project Agents (greenfield)
-
-For projects that do not exist yet. Activate with `/reversa-new` and the orchestrator drives the pipeline `Ideator → Researcher → Drafter → Spec SDD`, with a `CONTINUAR` checkpoint between agents. Final handoff suggests `/reversa-forward` to take the specs to code.
-
-The orchestrator has **two modes**. In *guided* mode (default) it stops at every agent and ends at the specs. In *express* mode (`/reversa-new expresso "<your idea>"`) every question is concentrated in one interview at the start and, after `INICIAR`, the pipeline runs straight through the specs and into the forward cycle (`requirements → plan → to-do → coding`) until the code is on disk.
-
-| Agent | Role |
-|-------|------|
-| **Reversa New** | Orchestrator. Reads the initial brief, walks the pipeline, saves `newproject_progress` in `state.json` |
-| **Ideator** | Structured brainstorm with 6 divergent questions (root problem, value, alternatives, audience, success metrics, dangerous assumptions). Produces `_reversa_sdd/ideation.md` |
-| **Researcher** | Turns the raw audience into 1 to 3 structured personas with journeys. Produces `_reversa_sdd/personas.md` |
-| **Drafter** | Synthesizes ideation and personas into a complete PRD (problem, metrics, scope, non-goals, constraints, risks). Produces `_reversa_sdd/prd.md` |
-| **Spec SDD** | Decomposes the PRD into logical components and writes one SDD spec per component, with an automatic quality score. Vendored from the global `sdd-spec` skill. Produces `_reversa_sdd/sdd/*.md` |
-
-### Code Forward Agents (evolution)
-
-The bridge from specs to running code. Pipeline: `requirements → clarify → quality → plan → to-do → audit → coding → sync`. Use `/reversa-forward` as the entry point: it detects the **physical stage** of the active feature (by inspecting the artifacts on disk, not metadata) and suggests the next agent.
-
-| Agent | Role |
-|-------|------|
-| **Reversa Forward** | Orchestrator. Detects the physical stage and suggests the next skill. Never executes code itself |
-| **Requirements** | Turns a free-form idea into `requirements.md` anchored to the legacy, with `[DOUBT]` markers, gaps and glossary |
-| **Clarify** | Up to 5 targeted questions to resolve `[DOUBT]` markers in place |
-| **Quality** | Read-only auditor of writing clarity. Produces `requirements-audit.md` |
-| **Plan** | Translates requirements into a technical proposal expressed as a **delta over the legacy**. Produces `roadmap.md`, `investigation.md`, `data-delta.md`, `onboarding.md`, `interfaces/` |
-| **To-Do** | Decomposes the roadmap into atomic actions across five phases with stable IDs, dependencies and parallelism markers. Produces `actions.md` |
-| **Audit** | Read-only cross-check between requirements, roadmap and actions. Produces `audit/cross-check.md` |
-| **Coding** | Executes `actions.md`, flips checkboxes, writes `progress.jsonl`, `legacy-impact.md` and `regression-watch.md` |
-| **Add** | Optional and repeatable after coding. Short amendment on the delivered feature: records it in `## Emendas` in `requirements.md`, then implements. Refuses anything needing a new dependency, a schema or contract change, a new public surface, an auth path, or anything outside the active feature's scope. Activation: `/reversa-add` |
-| **Sync** | Optional convergence step after coding. Distills the delivered feature into an addendum in `_reversa_sdd/addenda/`, so the extraction keeps describing the system as it is today until the next full re-extraction. Never edits the original artifacts. Activation: `/reversa-sync` |
-| **Principles** | Manages durable project rules (`principles.md`) and emits impact reports when they change |
-| **Resume** | Swaps the active feature with one from the `paused-features` queue |
-
-### Migration Team
-
-Use after `/reversa` when the goal is to rebuild the legacy on a modern stack. Activate with `/reversa-migrate`. Pipeline: `Paradigm Advisor → Curator → Strategist → Designer → Screen Translator → Inspector`, with a human review pause between agents. Every artifact lands in `_reversa_sdd/migration/`.
-
-| Agent | Role |
-|-------|------|
-| **Paradigm Advisor** | Detects the legacy paradigm, infers the target paradigm, forces a conscious user decision |
-| **Curator** | Decides rule by rule: MIGRATE, DISCARD or HUMAN DECISION |
-| **Strategist** | Evaluates Strangler Fig, Big Bang, Parallel Run, Branch by Abstraction and recommends one |
-| **Designer** | Drafts target architecture, domain model, data model and data migration plan |
-| **Screen Translator** | Translates legacy screens into executable specs in 2 phases (mode decision + spec generation), emitting golden files for the Inspector when an oracle is available |
-| **Inspector** | Defines how to prove the new system is behaviorally equivalent to the legacy, with Gherkin parity specs |
-
-### Pricing and Size Team
-
-Seven agents led by `/reversa-pricing`: Advisor (sale model), Research (web references with sources), Profile (billing profile, with an 'I know' and a 'research for me' mode), Size and Estimate (per feature: three scenarios), Product (break-even calculator for licenses, rentals, subscriptions and app stores). Only Research touches the web.
-
-### Front-end Team (Impeccable)
-
-Reversa ships **[Impeccable](https://github.com/pbakaus/impeccable)** as its Front-end Team. Impeccable is created and maintained by **[Paul Bakaus](https://github.com/pbakaus)** and released under the [Apache License 2.0](agents/impeccable/LICENSE); all credit for the skill, its 24 commands and its design guidance goes to him. Reversa could have reverse-engineered Impeccable's documentation and rebuilt its guidance under its own name. That would be dishonest and unfair to its author, who did excellent work producing a frontend design library this good. So Reversa ships his work as it is, under his license, and gives him the recognition he deserves for it. Source code: [github.com/pbakaus/impeccable](https://github.com/pbakaus/impeccable) · Website and docs: [impeccable.style](https://impeccable.style). It is one skill with 24 design commands for websites, dashboards, product UI, components and native screens: `shape`, `critique`, `audit`, `polish`, `bolder`, `quieter`, `distill`, `harden`, `onboard`, `animate`, `colorize`, `typeset`, `layout`, `delight`, `overdrive`, `clarify`, `adapt`, `optimize`, `live`, `generate`, plus `init`, `document` and `extract` for product and design-system context.
-
-Start with `/impeccable init` once per project, then `/impeccable <command> <target>` (e.g. `/impeccable critique landing`, `/impeccable polish settings`). The first run downloads the Impeccable engine binary into `~/.impeccable/bin`; no Node runtime is required.
-
-The copy under `agents/impeccable/` is synced verbatim from the upstream release tags by `scripts/sync-impeccable.mjs`; a daily GitHub Action opens a pull request whenever Impeccable publishes a new release, so `npx reversa update` always carries the current version. Source, version and commit are recorded in `agents/impeccable/reversa-bundle.json`.
-
-### Translators (input adapters)
-
-Use when the legacy "code" is not source code but a structured artifact like a visual workflow. Generates the SDD spec and prepares the state for the main pipeline to take over.
-
-| Agent | Role |
-|-------|------|
-| **N8N Translator** | Reads N8N workflows exported as JSON and produces SDD specs ready for Python reimplementation. Activated via `/reversa-n8n` |
-
-### Documentation Team (HTML mini-site)
-
-After discovery completes, this team turns the extracted knowledge into a self-contained HTML mini-site under `_reversa_docs/`. Run `/reversa-docs` to orchestrate the full team, or activate any agent in isolation to regenerate only its pages.
-
-| Agent | Role |
-|-------|------|
-| **Reversa Docs** | Orchestrates the team, runs the 3-question interview, computes deterministic seed. Activated via `/reversa-docs` |
-| **Mapper** | Spatial structure: `arquitetura.html` (Code City 3D, Three.js), `modulos.html` (force-directed D3), `topologia.html` (legacy vs modern side-by-side) |
-| **Analyst** | Quantitative data: `metricas.html` (Highcharts treemap, sankey, histogram, columns), `timeline.html` (events from `.reversa/chronicle.md`) |
-| **Storyteller** | Narrative: `glossario.html` (client-side search), `deck.html` (6 to 10 navigable slides), `features/<spec>.html` (one per SDD spec) |
-| **Publisher** | Final integration: `index.html` with hero + unique generative seal, auto-discovery of auxiliary HTMLs from other agents, link validation, local telemetry |
-
-The team brings 5 shared skills (`reversa-arquitetura-3d`, `reversa-selo-generativo`, `reversa-highcharts-visualizer`, `reversa-especialista-d3`, `reversa-image-prompt-json`) which are installed automatically alongside the team. The output is a static mini-site that opens via `file://` with no server required.
-
-### Bug Agents
-
-A repository-native causal defect memory, organized by **context** (the feature/module/use case the user is talking about): each context folder under `_reversa_bugs/<context>/` aggregates everything of that area (annotated reports in `intake/`, self-contained bug folders, inspections and generated views incl. a clickable `graph.html`). Every bug carries a YAML front matter record traceable to the specs (`SPEC ↔ CODE ↔ TEST ↔ BUG`), a visual fix plan approved before any change, and a `DONE.md` lock once closed. Registering and fixing are strictly separate acts.
-
-| Agent | Role |
-|-------|------|
-| **Bug** | Intake, triage, dedupe, classification and initial traceability. Never fixes. Activated via `/reversa-debugger` |
-| **Bug Fix** | Lifecycle orchestrator: mitigation, reproduction capsule, evidence-based root cause, two approval gates (failing tests, then the change set), spec verdict with versioned addenda, closure policy. Activated via `/reversa-debugger-fix` |
-| **Bug Debate** | Fixed-epoch multi-agent debate with an isolated judge, in three modes (`diagnosis`, `repair`, `spec`). Always opt-in, with cost shown upfront; external harnesses (Codex, Gemini CLI, ...) may join only with explicit consent. Activated via `/reversa-debugger-debate` |
-| **Depth Inspection** | Deep sweep of a problematic feature through specialized lenses (spec conformance, data flow, contracts, error states, test coverage, concurrency). Diagnosis only; confirmed findings become registered bugs. Activated via `/reversa-depth-inspection` |
-| **Bug Graph** | Regenerates the derived views: index, compact catalog, sparse relation matrix, mermaid graph with clusters and impact score, and the BUG ↔ SPEC traceability matrix on both ends (`_reversa_bugs/generated/` and `_reversa_sdd/traceability/bugs.md`). Activated via `/reversa-debugger-graph` |
-
-### Code Quality Agents
-
-Perfective and preventive maintenance on code that already works: improve the internal structure **without changing observable behavior**, and prove that preservation before touching the code. Organized by **context** under `_reversa_refactor/<context>/`, with each transformation anchored to the soul (`soul.md`) and confirmed specs. The founding rule: proposing a transformation and applying it are separate acts, and nothing touches the legacy without proof of behavior preservation (a **safety net** of characterization tests, plus soul and regression checks). Project code changes only through an approved, reversible diff gate.
-
-| Agent | Role |
-|-------|------|
-| **Refactor** | Orchestrator: inventories improvement opportunities, prioritizes by real ROI (hotpath, not aesthetics), routes to the right specialist and runs the gates. Never applies a transformation. Activated via `/reversa-refactor` |
-| **Restructure** | Internal structure at method/class level via the Fowler catalog, in small reversible steps. Activated via `/reversa-restructure` |
-| **Modularize** | Splits a large piece into cohesive modules with well-defined responsibility, respecting the soul's boundaries. Activated via `/reversa-modularize` |
-| **Decouple** | Reduces direct dependencies (dependency inversion, Feathers seams, cycle breaking), coupling measured before and after. Activated via `/reversa-decouple` |
-| **Optimize** | Reduces time, memory and resource use, with a before/after measurement and preserved output. Activated via `/reversa-optimize` |
-| **Simplify** | Replaces complex logic with a simpler one, with a proof of output equivalence. Activated via `/reversa-simplify` |
-| **Standardize** | Applies naming, formatting and organization conventions from the project's dominant pattern, never changing semantics. Activated via `/reversa-standardize` |
-| **Prune** | Removes dead code, and only what it can prove is dead, telling dead code from a suspected orphan. Activated via `/reversa-prune` |
-
----
-
-## What is generated
-
-```
-_reversa_sdd/
-├── inventory.md              # Project inventory
-├── dependencies.md           # Dependencies with versions
-├── code-analysis.md          # Technical analysis per module
-├── data-dictionary.md        # Data dictionary
-├── domain.md                 # Glossary and business rules
-├── state-machines.md         # State machines in Mermaid
-├── permissions.md            # Permission matrix
-├── architecture.md           # Architectural overview
-├── c4-context.md             # C4 Diagram: Context
-├── c4-containers.md          # C4 Diagram: Containers
-├── c4-components.md          # C4 Diagram: Components
-├── erd-complete.md           # Full ERD in Mermaid
-├── confidence-report.md      # Confidence report 🟢🟡🔴
-├── gaps.md                   # Identified gaps
-├── questions.md              # Questions for human validation
-├── sdd/                      # Specs per component
-│   └── [component].md
-├── openapi/                  # API specs (if applicable)
-├── user-stories/             # User stories (if applicable)
-├── adrs/                     # Retroactive architectural decisions
-├── flowcharts/               # Flowcharts in Mermaid
-├── sequences/                # Sequence diagrams
-├── ui/                       # Interface specs (Visor)
-├── database/                 # Database specs (Data Master)
-├── design-system/            # Design tokens (Design System)
-├── addenda/                  # Post-delivery addenda, one per feature (Sync)
-└── traceability/
-    ├── spec-impact-matrix.md # Which spec impacts which
-    └── code-spec-matrix.md   # Code file to corresponding spec
-```
-
-In a greenfield run, `/reversa-new` adds the following on top of `_reversa_sdd/`:
-
-```
-_reversa_sdd/
-├── newproject-brief.md      # Initial brief (Reversa New)
-├── ideation.md              # Structured brainstorm (Ideator)
-├── personas.md              # Personas with journeys (Researcher)
-├── prd.md                   # Product Requirements Document (Drafter)
-└── sdd/
-    └── [component].md       # SDD specs with quality score (Spec SDD)
-```
-
-Forward features land in a separate folder, `_reversa_forward/` by default:
-
-```
-_reversa_forward/
-└── <NNN>-<short-name>/      # One folder per feature
-    ├── requirements.md
-    ├── roadmap.md
-    ├── investigation.md
-    ├── data-delta.md
-    ├── onboarding.md
-    ├── interfaces/
-    ├── actions.md
-    ├── progress.jsonl
-    ├── legacy-impact.md
-    ├── regression-watch.md
-    └── audit/
-        ├── requirements-audit.md
-        └── cross-check.md
-```
-
-After `/reversa-coding`, the optional `/reversa-sync` distills the delivered feature into `_reversa_sdd/addenda/<feature-id>-<short-name>.md`. The addendum is a bridge: it keeps the extraction representative of the system as it is today, points at the sections of `architecture.md` and `domain.md` that drifted, and is marked as superseded by the next full re-extraction. Original extraction artifacts are never edited.
-
-Ideation Agents write only inside `_reversa_sdd/brainstorms/` (one folder per session) and `.reversa/active-ideation.json`. They never touch project code and never produce code.
-
-The Documentation Team writes only inside `_reversa_docs/` (HTML mini-site, fully offline).
-
-Bug Agents write only inside `_reversa_bugs/` (one folder per bug, plus generated views), spec addenda in `_reversa_sdd/addenda/` and the generated mirror `_reversa_sdd/traceability/bugs.md`. Original specs are never edited; project code changes only through approval gates with explicit diffs.
-
-Code Quality Agents write only inside `_reversa_refactor/` (opportunities, plans and transformation records per context). Project code changes exclusively through an approved, reversible diff gate, and only after the safety net proves behavior is preserved.
-
-### Confidence scale
-
-Every statement in the specs is marked with:
-
-| Mark | Meaning |
-|------|---------|
-| 🟢 CONFIRMED | Extracted directly from code — can be cited with file and line |
-| 🟡 INFERRED | Deduced from patterns — may be wrong |
-| 🔴 GAP | Not determinable from code — requires human validation |
-
----
-
-## Supported engines
-
-| Engine | File created | Skills path | Activation |
-|--------|-------------|-------------|------------|
-| Claude Code ⭐ | `CLAUDE.md` | `.claude/skills/reversa-*/` and `.agents/skills/reversa-*/` | `/reversa` |
-| Codex ⭐ | `AGENTS.md` | `.agents/skills/reversa-*/` | `reversa` |
-| Cursor ⭐ | `.cursorrules` | `.agents/skills/reversa-*/` | `/reversa` |
-| Gemini CLI | `GEMINI.md` | `.agents/skills/reversa-*/` | `/reversa` |
-| Windsurf | `.windsurfrules` | `.agents/skills/reversa-*/` | `/reversa` |
-| Antigravity | `AGENTS.md` | `.agents/skills/reversa-*/` | `/reversa` |
-| Kiro | (none) | `.kiro/skills/reversa-*/` and `.agents/skills/reversa-*/` | `/reversa` |
-| Opencode | `AGENTS.md` | `.agents/skills/reversa-*/` | `reversa` |
-| Hermes | `AGENTS.md` | `.agents/skills/reversa-*/` | `reversa` |
-| Cline | `.clinerules` | `.agents/skills/reversa-*/` | `/reversa` |
-| Roo Code | `.roorules` | `.agents/skills/reversa-*/` | `/reversa` |
-| GitHub Copilot | `.github/copilot-instructions.md` | `.agents/skills/reversa-*/` | `/reversa` |
-| Aider | `CONVENTIONS.md` | `.agents/skills/reversa-*/` | `reversa` |
-| Amazon Q Developer | `.amazonq/rules/reversa.md` | `.agents/skills/reversa-*/` | `/reversa` |
-
----
-
-## CLI commands
+The `reversa-security-audit` skill runs [Codex Security](https://www.npmjs.com/package/@openai/codex-security) against the **full** target repository. Graphify provides focused context for migration but never narrows scan coverage.
 
 ```bash
-npx reversa install      # Install Reversa in the project (all agents)
-npx reversa status       # Show current analysis state
-npx reversa update       # Update everything to the latest version (all agents)
-npx reversa add-engine   # Add support for a new engine
-npx reversa uninstall    # Remove Reversa from the project
+npx @openai/codex-security login          # or configure a supported API key
+
+npx reversa security-scan --target ./legacy-app --phase pre
+npx reversa security-scan --target ./legacy-app --phase post --max-cost-usd 5
+npx reversa security-scan --target ./legacy-app --phase pre --dry-run   # verify target and phase only
 ```
 
-The `update` command detects files you modified via SHA-256 and never overwrites customizations.
-The `uninstall` command removes only files created by Reversa — nothing from the legacy project is touched.
+- Run `pre` before source changes and `post` after the migrated source is present.
+- Findings are compared only when both scans completed with complete coverage. Failed or incomplete scans are never reported as clean.
+- Requires Node.js 22.13+ (22.x), 24.x or 26.x and Python 3.10+. There is no heuristic fallback when Codex Security is unavailable.
+- Output (scan JSON, scorecard, Markdown report) is stored in `.reversa/security/` with restrictive permissions where supported. Reports can contain sensitive source excerpts.
 
----
+**Graph-weighted risk** combines vulnerability exposure (45%), Graphify blast radius (30%), graph uncertainty (15%) and verification deficit (10%). If Graphify data is unavailable the security posture is still reported but the composite score is marked unavailable. Findings with no Graphify file match remain visible as unmapped repository findings.
 
-## Internal structure
-
-```
-.reversa/
-├── state.json          # Analysis state between sessions
-├── config.toml         # Project configuration
-├── config.user.toml    # Personal preferences (don't commit)
-├── plan.md             # Exploration plan (user-editable)
-├── version             # Installed version
-├── context/
-│   ├── surface.json    # Generated by Scout
-│   └── modules.json    # Generated by Archaeologist
-└── _config/
-    ├── manifest.yaml       # Installation metadata
-    └── files-manifest.json # SHA-256 hashes for safe updates
-
-.agents/skills/         # Universal skills (all compatible agents)
-.claude/skills/         # Mirror for Claude Code
-```
-
----
-
-## Contributing
-
-Contributions are welcome. Open an issue to discuss before submitting a PR.
+## Dashboard
 
 ```bash
-git clone https://github.com/sandeco/reversa.git
-cd reversa
-npm install
+npx reversa dashboard --target ./legacy-app
 ```
 
----
+Binds to `127.0.0.1:4400`, reads Reversa state without changing it, and can trigger a full-repository security scan. Run it in a separate terminal.
 
-## License
+## Migration MCP
 
-MIT — see [LICENSE](LICENSE) for details.
+A small stdio MCP server for Graphify-based migration analysis, so any MCP client can use the graph without the Reversa CLI. It reuses the bundled Graphify runner and the JavaScript context/diff adapters and does not modify native Graphify artifacts.
 
-### Third-party components
+Source: https://github.com/adarshsaraf1234/migration-mcp (`src/migration_mcp`)
+Hosted endpoint: https://migration-mcp-trial-production.up.railway.app/mcp
 
-| Component | Author | License | Where |
-|-----------|--------|---------|-------|
-| [Impeccable](https://github.com/pbakaus/impeccable) | Paul Bakaus | [Apache License 2.0](agents/impeccable/LICENSE) · [NOTICE](agents/impeccable/NOTICE.md) | `agents/impeccable/` (Front-end Team) |
+To use the hosted server from an MCP client that supports HTTP servers, for example Claude Code:
+
+```bash
+claude mcp add --transport http graph-propagate https://migration-mcp-trial-production.up.railway.app/mcp
+```
+
+To run it locally over stdio instead, see below.
+
+| Tool | Purpose |
+|---|---|
+| `analyze_legacy_repo(repository_path, timeout_seconds?)` | Runs the Graphify runner and verifies `graph.json`, `GRAPH_REPORT.md` and `graph.html` |
+| `get_migration_context(graph_path, target, max_depth?, max_nodes?, max_edges?, timeout_seconds?)` | Bounded context from an existing native graph |
+| `compare_migration_graphs(baseline_graph_path, after_graph_path, timeout_seconds?)` | Structural diff between two graphs |
+
+Requirements: Python 3.11+, `uv`, Node.js, and the Graphify CLI (needed only for `analyze_legacy_repo`; context and comparison work on existing snapshots).
+
+```bash
+uv sync --project src/migration_mcp
+uv run --project src/migration_mcp python src/migration_mcp/server.py
+```
+
+For nonstandard executable locations set `MIGRATION_MCP_NODE` and `MIGRATION_MCP_GRAPHIFY` in the MCP client's environment.
+
+Tests:
+
+```bash
+uv run --project src/migration_mcp python -m unittest discover -s src/migration_mcp/tests -v
+```
+
+> Structural graph differences do not establish behavioral equivalence. Run and review the relevant tests separately.
+
+See the [Graphify contract](https://github.com/adarshsaraf1234/migration-mcp/blob/feature/migration-mcp/docs/graphify-contract.md) for verified graph behavior.
+
+## Results on NanoHTTPD
+
+Per-agent telemetry from a real run on [NanoHTTPD](https://github.com/amany9000/nanohttpd), logged to `.reversa/context/graph-usage.jsonl`:
+
+| Agent / unit | Graph queries | Raw reads | Raw lines | Fallbacks |
+|---|---|---|---|---|
+| Scout | 5 | 3 | 82 | 0 |
+| Archaeologist: core | 2 | 11 | 891 | 0 |
+| Archaeologist: websocket | 2 | 6 | 650 | 0 |
+| Archaeologist: webserver | 1 | 5 | 425 | 0 |
+| Archaeologist: nanolets | 1 | 3 | 370 | 0 |
+| Archaeologist: fileupload | 1 | 1 | 120 | 0 |
+| Archaeologist: markdown-plugin | 1 | 2 | 150 | 0 |
+| Archaeologist: samples | 1 | 3 | 280 | 0 |
+| Archaeologist: relocation | 0 | 6 | 95 | 1 |
+| Detective | 5 | 1 | 7 | 0 |
+| Architect | 5 | 0 | 0 | 0 |
+| Reviewer | 15 | 0 | 0 | 0 |
+| **Total** | **39** | **41** | **3,070** | **1** |
+
+- The graph locates entry points and scopes each module; agents then read only focused code (contracts, handshake, routing) instead of walking the tree.
+- Detective, Architect and Reviewer worked almost entirely from graph queries (one raw read of 7 lines across all three).
+- The single fallback was `relocation`: the AST graph does not model Maven relocation POMs, so the agent inspected the POM directly and logged it.
+
+## Migration Summary
+
+The NanoHTTPD migration, run through Graph Propagate:
+
+| Area | Summary |
+| --- | --- |
+| Code migration | 19 migration tasks completed across the existing modules, preserving the module layout and class based library design. |
+| Java baseline | Java 17 selected as the target. |
+| Build configuration | Maven and Gradle build configuration updated to support the migration. |
+| Dependencies | Maven plugin and library dependencies were reviewed and updated; Gradle dependencies/build setup were aligned. |
+| Verification | `mvn compile` succeeded. The README's second command needs the core snapshot installed or built in the reactor first. |
+
+## Demo flow
+
+1. `security-scan --phase pre` on the legacy repo.
+2. `reversa graph build`, `reversa graph snapshot baseline`, `reversa graph summary` (offline, no LLM calls).
+3. Run `/reversa` with the dashboard open in a second terminal.
+4. Show the telemetry: agents answering from graph queries with few raw reads.
+5. After a migrated slice: `reversa graph snapshot latest`, `reversa graph diff baseline latest`.
+6. `security-scan --phase post` and compare with the pre scan.
+7. Remove `graphify` from `PATH` and show the pipeline still completes with a single "graph unavailable" note.
+
+## What to commit
+
+Commit `.agents/`, `AGENTS.md`, `_reversa_sdd/`, `_reversa_forward/` and `.reversa/` so teammates can resume a run. Add these lines to the target repo's `.gitignore`:
+
+```
+# Reversa
+.reversa/config.user.toml
+.reversa/graphify-out/
+.reversa/context/graph-usage.jsonl
+```
+
+The graph is rebuilt offline in seconds and changes on every rebuild. Only one person should run an analysis at a time to avoid merge conflicts in `.reversa/state.json`.
+
+## Testing
+
+Testing is currently manual: install into a small sample legacy project, run each `reversa graph` command, run `/reversa` once with Graphify installed and once with it removed, then run `reversa update` and confirm the entry file is not reported as modified. The Migration MCP has its own unit tests (see above).
+
+## Safety
+
+- Graph extraction is offline; source code is not sent to an LLM for it.
+- Agents write only to `.reversa/` and the output folders unless an explicit, approved gate says otherwise.
+- Security scans run before and after migration; incomplete scans are never reported as clean.
+- Unexpected graph changes after a migrated slice go to a human checkpoint.
+- Back up your project and commit to Git before starting. AI agents can make mistakes.
+
+## Credits and licenses
+
+| Component | Author | License |
+|---|---|---|
+| [Reversa](https://github.com/sandeco/reversa) | sandeco | MIT |
+| [Graphify](https://github.com/Graphify-Labs/graphify) | Graphify Labs | Apache-2.0 / MIT (external CLI, not bundled) |
+| [Impeccable](https://github.com/pbakaus/impeccable) | Paul Bakaus | Apache-2.0 (Front-end Team, inherited from Reversa) |
+| [NanoHTTPD](https://github.com/NanoHttpd/nanohttpd) | NanoHTTPD contributors | BSD-3-Clause (demo target) |
+
+This fork is released under the same MIT license as Reversa.

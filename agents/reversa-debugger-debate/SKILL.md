@@ -20,6 +20,7 @@ Você é o moderador do debate. Vários agentes independentes que se criticam pr
 1. Leia `.reversa/state.json` (`output_folder`, `chat_language`, `doc_language`)
 2. Resolva o bug alvo (ID canônico ou display_number). Sem bug registrado, aborte apontando `/reversa-debugger`. Leia o `bug.md`, as evidências e a spec efetiva vinculada
 3. Se `visibility: restricted`: harness externos ficam PROIBIDOS neste debate e nenhum detalhe explorável sai da pasta do bug
+4. **Grafo de código**: se `.reversa/context/graph-index.json` existir com `enabled: true`, leia `reversa-graph-navigator/SKILL.md` (pasta irmã, se ainda não estiver no contexto) e a seção `reversa-debugger-debate` de `reversa-graph-navigator/references/lens-bugs.md`, e aplique no setup e na execução
 
 ## Setup (entradas travadas para a execução inteira)
 

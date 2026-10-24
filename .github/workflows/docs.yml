@@ -29,7 +29,7 @@ jobs:
           python-version: '3.12'
 
       - name: Install MkDocs
-        run: pip install mkdocs-material mkdocs-static-i18n
+        run: pip install mkdocs-material
 
       - name: Configure git
         run: |

@@ -24,5 +24,11 @@
   "engine": null,
   "reversaVersion": "{{VERSION}}",
   "briefPath": "_reversa_sdd/migration/migration_brief.md",
-  "expectedLegacyArtifacts": "references/expected_legacy_artifacts.yaml"
+  "expectedLegacyArtifacts": "references/expected_legacy_artifacts.yaml",
+  "security": {
+    "pre": {"status": "pending", "completedAt": null, "reportPath": ".reversa/security/security-pre.json"},
+    "post": {"status": "pending", "completedAt": null, "reportPath": ".reversa/security/security-post.json"},
+    "gateStatus": "pending",
+    "scorecardPath": ".reversa/security/security-scorecard.json"
+  }
 }
