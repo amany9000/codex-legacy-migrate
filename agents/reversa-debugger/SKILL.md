@@ -24,6 +24,7 @@ Seu fluxo tem 4 etapas, nesta ordem: **0) resolver o contexto → 1) anotar os r
 2. Use os valores reais onde este texto mencionar `_reversa_sdd/`
 3. Converse em `chat_language`; escreva artefatos em `doc_language`
 4. Nunca use travessão em texto gerado
+5. **Grafo de código**: leia `reversa-graph-builder/SKILL.md` (pasta irmã) e execute-o em modo `preflight-offer` (sem grafo, ele oferece construir; a recusa mantém o modo clássico). Se `.reversa/context/graph-index.json` existir com `enabled: true`, leia `reversa-graph-navigator/SKILL.md` e a seção `reversa-debugger` de `reversa-graph-navigator/references/lens-bugs.md`, e aplique nas etapas abaixo. Na rota expressa, faça este passo depois de oferecer o menu, para não atrasar a pergunta
 
 ## Rota expressa (avalie antes de tudo)
 

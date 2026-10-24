@@ -1,64 +1,64 @@
-# Passo 3, Organização das specs
+# Step 3, Specs organization
 
-Este passo acontece imediatamente após o usuário escolher o `doc_level` (Essencial / Completo / Detalhado) e antes da invocação do Archaeologist. É o momento em que o Reversa decide e persiste em qual estrutura as specs serão geradas.
+This step happens right after the user chooses the `doc_level` (Essential / Complete / Detailed) and before the Archaeologist is invoked. It is the moment when Reversa decides and persists the structure in which the specs will be generated.
 
-## 1. Decidir se o menu deve ser exibido
+## 1. Decide whether to show the menu
 
-Leia, nesta ordem, e mescle chave a chave (precedência total para `config.user.toml`):
+Read, in this order, and merge key by key (full precedence for `config.user.toml`):
 
-1. `.reversa/config.toml`, seção `[specs]` (config gerenciado pelo Reversa)
-2. `.reversa/config.user.toml`, seção `[specs]` (override manual do usuário)
+1. `.reversa/config.toml`, section `[specs]` (config managed by Reversa)
+2. `.reversa/config.user.toml`, section `[specs]` (user's manual override)
 
-A mescla é avaliada por chave: cada chave presente em `config.user.toml` substitui a correspondente em `config.toml`. Chaves ausentes continuam vindas de `config.toml`.
+The merge is evaluated per key: each key present in `config.user.toml` replaces the matching one in `config.toml`. Missing keys keep coming from `config.toml`.
 
-A seção é considerada **decidida** quando, após a mescla, `granularity` está preenchida com um dos valores válidos: `module`, `use-case`, `endpoint`, `hybrid`, `feature`, `custom`.
+The section is considered **decided** when, after the merge, `granularity` holds one of the valid values: `module`, `use-case`, `endpoint`, `hybrid`, `feature`, `custom`.
 
-- **Se decidida:** pule este passo inteiro. Vá direto para a invocação do Archaeologist.
-- **Se não decidida** (seção ausente, ou `granularity` vazia): apresente o menu (passo 2 abaixo).
+- **If decided:** skip this whole step. Go straight to invoking the Archaeologist.
+- **If not decided** (section missing, or `granularity` empty): show the menu (step 2 below).
 
-### Caso especial, RF-18
+### Special case, RF-18
 
-Se `granularity` está vazia em `config.toml` (ou a seção foi removida) **e** existe seção `[specs]` em `config.user.toml` com qualquer chave preenchida, avise o usuário antes de exibir o menu. Use exatamente este formato:
+If `granularity` is empty in `config.toml` (or the section was removed) **and** there is a `[specs]` section in `config.user.toml` with any key filled, warn the user before showing the menu. Use exactly this format:
 
-> "Detectei que `.reversa/config.toml` não tem decisão de organização das specs, mas `.reversa/config.user.toml` contém um override em `[specs]`. O override continuará ativo após a sua escolha e pode sobrescrever campos que você decidir agora.
+> "I noticed `.reversa/config.toml` has no specs organization decision, but `.reversa/config.user.toml` contains an override in `[specs]`. The override will stay active after your choice and may overwrite fields you decide now.
 >
-> Override atual em `config.user.toml`:
-> [listar chaves e valores]
+> Current override in `config.user.toml`:
+> [list keys and values]
 >
-> Quer prosseguir com o menu mesmo assim? (s/N)"
+> Do you want to go ahead with the menu anyway? (y/N)"
 
-Aguarde resposta afirmativa explícita antes de seguir para o menu. Resposta vazia ou negativa aborta sem persistir nada.
+Wait for an explicit affirmative answer before moving to the menu. An empty or negative answer aborts without persisting anything.
 
-## 2. Apresentar o menu
+## 2. Show the menu
 
-Leia `.reversa/context/surface.json` → `organization_suggestion`. Use o campo `granularity` para pré-marcar a opção sugerida e o campo `rationale` para mostrar a razão.
+Read `.reversa/context/surface.json` → `organization_suggestion`. Use the `granularity` field to pre-select the suggested option and the `rationale` field to show the reason.
 
-Se o `surface.json` não tiver `organization_suggestion` preenchida (Scout não rodou ou falhou), exiba o menu sem default e peça que o usuário escolha manualmente, conforme EC-01 da spec de organização.
+If `surface.json` has no `organization_suggestion` (the Scout did not run or failed), show the menu without a default and ask the user to choose manually, per EC-01 of the organization spec.
 
-Use exatamente este formato (idioma seguindo `chat_language` do `state.json`, exemplo abaixo em pt-br):
+Use exactly this format:
 
 ```
-Como você quer organizar as specs deste projeto?
+How do you want to organize the specs of this project?
 
-O Scout analisou o legado e sugere: [tradução da granularity sugerida].
-Razão: [organization_suggestion.rationale]
+The Scout analyzed the legacy system and suggests: [suggested granularity].
+Reason: [organization_suggestion.rationale]
 
-  [1] [marcador] Por módulo de código
-  [2] [marcador] Por caso de uso
-  [3] [marcador] Por endpoint/contrato
-  [4] [marcador] Híbrida (módulo na raiz, casos de uso aninhados)
-  [5] [marcador] Por features (Scout lista as features descobertas)
-  [6] [marcador] Customizada
+  [1] [marker] By code module
+  [2] [marker] By use case
+  [3] [marker] By endpoint/contract
+  [4] [marker] Hybrid (module at the root, nested use cases)
+  [5] [marker] By features (the Scout lists the discovered features)
+  [6] [marker] Custom
 
-Escolha (Enter aceita o sugerido):
+Choice (Enter accepts the suggestion):
 ```
 
-Onde `[marcador]` é `*` (asterisco) na opção pré-marcada e espaço nas demais. Adicione `(sugerido)` ao lado da opção pré-marcada.
+Where `[marker]` is `*` (asterisk) on the pre-selected option and a space on the others. Add `(suggested)` next to the pre-selected option.
 
-Mapeamento das 6 opções para o valor de `granularity`:
+Mapping of the 6 options to the `granularity` value:
 
-| Opção | `granularity` |
-|-------|---------------|
+| Option | `granularity` |
+|--------|---------------|
 | 1 | `module` |
 | 2 | `use-case` |
 | 3 | `endpoint` |
@@ -66,80 +66,80 @@ Mapeamento das 6 opções para o valor de `granularity`:
 | 5 | `feature` |
 | 6 | `custom` |
 
-### Aceitar a entrada
+### Accepting the input
 
-- Enter sem digitar: aceita a opção pré-marcada.
-- Número de 1 a 6: aceita a opção correspondente.
-- Qualquer outra entrada: peça novamente sem persistir nada.
-- Ctrl+C / ESC / cancelamento: aborte a execução e não persista nada (EC-02).
+- Enter without typing: accepts the pre-selected option.
+- Number from 1 to 6: accepts the matching option.
+- Any other input: ask again without persisting anything.
+- Ctrl+C / ESC / cancellation: abort and persist nothing (EC-02).
 
-### Opção 6, customizada
+### Option 6, custom
 
-Se o usuário escolher 6, abra o seguinte prompt:
+If the user chooses 6, open this prompt:
 
-> "Quais são os nomes das pastas de primeiro nível? Liste separados por vírgula ou um por linha (mínimo 1)."
+> "What are the names of the top-level folders? List them comma-separated or one per line (at least 1)."
 
-Aceite a entrada, sanitize cada nome (remova caracteres proibidos pelo sistema de arquivos do OS, descarte nomes vazios). Se a lista resultar vazia, repita o prompt (EC-07). Os nomes vão para `custom_folders`.
+Accept the input and sanitize each name (remove characters forbidden by the OS file system, drop empty names). If the list ends up empty, repeat the prompt (EC-07). The names go into `custom_folders`.
 
-## 3. Detectar conflito com estrutura já em disco (RF-11)
+## 3. Detect conflict with a structure already on disk (RF-11)
 
-Antes de persistir a decisão, verifique se existe estrutura de specs já materializada em `<output_folder>/` (definido em `state.json`).
+Before persisting the decision, check whether a specs structure already exists in `<output_folder>/` (defined in `state.json`).
 
-Se a pasta de saída tem subpastas que correspondem a uma granularidade diferente da escolhida agora (por exemplo, escolhida `endpoint` mas o disco tem pastas que parecem `module`), exiba aviso comparando as duas estruturas e peça confirmação:
+If the output folder has subfolders matching a granularity different from the one chosen now (for example, `endpoint` was chosen but the disk has folders that look like `module`), show a warning comparing the two structures and ask for confirmation:
 
-> "Detectei que já existem specs geradas com a estrutura **[antiga]** em `<output_folder>/`. Você escolheu agora **[nova]**, que difere da anterior.
+> "I noticed specs already generated with the **[old]** structure exist in `<output_folder>/`. You have now chosen **[new]**, which differs from the previous one.
 >
-> Vou criar a nova estrutura em paralelo, sem tocar na anterior. Specs existentes ficam preservadas.
+> I'll create the new structure in parallel, without touching the previous one. Existing specs are preserved.
 >
-> Confirma? (s/N)"
+> Confirm? (y/N)"
 
-Aguarde resposta afirmativa explícita. Negação aborta sem persistir.
+Wait for an explicit affirmative answer. A negative answer aborts without persisting.
 
-A detecção é heurística e best-effort: comparar nomes de subpastas top-level com os módulos identificados pelo Scout (`module`), com URIs/rotas (`endpoint`), com features (`feature`), etc. Quando a heurística não conseguir decidir com clareza, **não** exiba o aviso (evita falso positivo).
+Detection is heuristic and best-effort: compare top-level subfolder names with the modules identified by the Scout (`module`), with URIs/routes (`endpoint`), with features (`feature`), and so on. When the heuristic cannot decide clearly, do **not** show the warning (avoids false positives).
 
-## 4. Persistir a decisão (RNF-03, atomic write)
+## 4. Persist the decision (RNF-03, atomic write)
 
-Atualize `.reversa/config.toml`, seção `[specs]`, com:
+Update `.reversa/config.toml`, section `[specs]`, with:
 
 ```toml
 [specs]
 layout = "feature-folder"
-granularity = "<escolha do usuário>"
-custom_folders = [<lista>]   # apenas quando granularity == "custom", caso contrário []
-scout_suggestion = "<organization_suggestion.granularity do surface.json>"
-decided_at = "<timestamp ISO 8601 UTC, exemplo 2026-05-03T14:32:00Z>"
+granularity = "<user's choice>"
+custom_folders = [<list>]   # only when granularity == "custom", otherwise []
+scout_suggestion = "<organization_suggestion.granularity from surface.json>"
+decided_at = "<ISO 8601 UTC timestamp, e.g. 2026-05-03T14:32:00Z>"
 ```
 
-Regras:
+Rules:
 
-- **Atomic write:** escreva em um arquivo temporário no mesmo diretório (`config.toml.tmp`) e faça rename atômico para `config.toml`. Falha durante a escrita não pode deixar `config.toml` corrompido.
-- **scout_suggestion é imutável** (RF-14): se a seção `[specs]` já existia mas estava com `granularity` vazia e `scout_suggestion` preenchida, preserve `scout_suggestion`. Em primeira execução, copie o valor atual de `organization_suggestion.granularity` do `surface.json`.
-- **Non-destructive:** preserve qualquer chave/seção que você não esteja explicitamente atualizando. Não toque em `[project]`, `[user]`, `[output]`, `[agents]`, `[engines]`, `[analysis]` ou outras seções.
-- **Não mexa em `.reversa/config.user.toml`.** Esse arquivo pertence ao usuário.
-- **Falha de IO** (disco cheio, sem permissão, EC-06): exiba erro claro, não crie pastas de spec, não considere a escolha como confirmada. O usuário pode tentar de novo na próxima execução.
+- **Atomic write:** write to a temporary file in the same directory (`config.toml.tmp`) and atomically rename it to `config.toml`. A failure while writing must never leave `config.toml` corrupted.
+- **scout_suggestion is immutable** (RF-14): if the `[specs]` section already existed with an empty `granularity` and a filled `scout_suggestion`, keep `scout_suggestion`. On the first run, copy the current value of `organization_suggestion.granularity` from `surface.json`.
+- **Non-destructive:** keep every key/section you are not explicitly updating. Do not touch `[project]`, `[user]`, `[output]`, `[agents]`, `[engines]`, `[analysis]` or other sections.
+- **Do not touch `.reversa/config.user.toml`.** That file belongs to the user.
+- **IO failure** (disk full, no permission, EC-06): show a clear error, create no spec folders, and do not treat the choice as confirmed. The user can try again on the next run.
 
-## 5. Continuação do fluxo
+## 5. Continuing the flow
 
-Após a persistência bem-sucedida, prossiga com a invocação do Archaeologist conforme o `plan.md`. A decisão fica disponível para todos os agentes que escrevem specs.
+After a successful write, continue with invoking the Archaeologist according to `plan.md`. The decision is available to every agent that writes specs.
 
-## 6. Reapresentação manual (RF-17)
+## 6. Showing the menu again manually (RF-17)
 
-Não existe flag de CLI dedicada para reconfigurar. O usuário reapresenta o menu removendo manualmente a seção `[specs]` de `.reversa/config.toml` (ou esvaziando `granularity`). Na próxima execução, este passo detecta o estado "não decidido" e roda novamente.
+There is no dedicated CLI flag to reconfigure. The user shows the menu again by manually removing the `[specs]` section from `.reversa/config.toml` (or emptying `granularity`). On the next run, this step detects the "not decided" state and runs again.
 
-## Idioma das pastas (RF-10)
+## Folder names (RF-10)
 
-Os nomes que o Reversa usa para as pastas de feature seguem `doc_language` do `state.json`. Não pergunte idioma neste passo. Em uma instalação `pt-br`, as pastas saem em pt-br; em `en`, em inglês.
+The names Reversa uses for feature folders are in English. Do not ask about language in this step.
 
-## Lista de checagens antes de avançar
+## Checklist before moving on
 
-- [ ] Ler `[specs]` de `config.toml` e mesclar com `config.user.toml` chave a chave
-- [ ] Se já decidida, pular o passo
-- [ ] Se há override em `config.user.toml` mas `config.toml` está vazio, exibir aviso RF-18
-- [ ] Ler `organization_suggestion` de `surface.json`
-- [ ] Exibir menu com sugestão pré-marcada
-- [ ] Aceitar Enter, número 1 a 6, ou cancelamento
-- [ ] Se opção 6, coletar `custom_folders`
-- [ ] Detectar conflito com estrutura em disco e pedir confirmação
-- [ ] Atomic write em `config.toml`
-- [ ] Preservar `scout_suggestion` em re-execuções com seção parcial
-- [ ] Prosseguir para o Archaeologist
+- [ ] Read `[specs]` from `config.toml` and merge with `config.user.toml` key by key
+- [ ] If already decided, skip the step
+- [ ] If there is an override in `config.user.toml` but `config.toml` is empty, show the RF-18 warning
+- [ ] Read `organization_suggestion` from `surface.json`
+- [ ] Show the menu with the suggestion pre-selected
+- [ ] Accept Enter, a number from 1 to 6, or cancellation
+- [ ] If option 6, collect `custom_folders`
+- [ ] Detect conflict with the structure on disk and ask for confirmation
+- [ ] Atomic write to `config.toml`
+- [ ] Keep `scout_suggestion` on re-runs with a partial section
+- [ ] Proceed to the Archaeologist

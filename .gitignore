@@ -7,3 +7,7 @@ site/
 .npm-cache/
 .tmp-mkdocs-site/
 specs/
+
+node_modules/
+.agents/
+.claude/

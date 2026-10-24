@@ -1,22 +1,20 @@
-# Schema — .reversa/state.json
+# Schema: .reversa/state.json
 
-Este arquivo persiste o estado completo da análise entre sessões. O Reversa lê e escreve neste arquivo.
+This file persists the full analysis state across sessions. Reversa reads and writes this file.
 
-## Estrutura completa
+## Full structure
 
 ```json
 {
   "version": "1.0.0",
-  "project": "nome-do-projeto",
-  "user_name": "Nome do Usuário",
-  "chat_language": "pt-br",
-  "doc_language": "Português",
+  "project": "project-name",
+  "user_name": "User Name",
   "answer_mode": "chat",
   "doc_level": null,
   "output_folder": "_reversa_sdd",
-  "phase": "reconhecimento",
-  "completed": ["reconhecimento"],
-  "pending": ["escavacao", "interpretacao", "geracao", "revisao"],
+  "phase": "reconnaissance",
+  "completed": ["reconnaissance"],
+  "pending": ["excavation", "interpretation", "generation", "review"],
   "engines": ["claude-code"],
   "agents": ["reversa", "reversa-scout", "reversa-archaeologist"],
   "checkpoints": {
@@ -47,34 +45,35 @@ Este arquivo persiste o estado completo da análise entre sessões. O Reversa l�
 }
 ```
 
-## Campos
+## Fields
 
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `version` | string | Versão do Reversa instalada |
-| `project` | string | Nome do projeto legado |
-| `user_name` | string | Nome do usuário (para interações) |
-| `chat_language` | string | Idioma das interações (ex: pt-br, en-us) |
-| `doc_language` | string | Idioma das specs geradas (ex: Português, English) |
-| `answer_mode` | string | Como o usuário responde às lacunas: `chat` ou `file` |
-| `doc_level` | string \| null | Volume de documentação gerada: `essencial`, `completo` ou `detalhado`. Começa `null` — obrigatório preencher via escolha do usuário após o Scout. |
-| `output_folder` | string | Pasta de saída das specs (padrão: `_reversa_sdd`) |
-| `phase` | string \| null | Fase atual. `null` = não iniciado |
-| `completed` | string[] | Fases concluídas |
-| `pending` | string[] | Fases pendentes |
-| `checkpoints` | object | Registro de conclusão de cada agente |
-| `engines` | string[] | Engines configuradas (ex: `["claude-code", "codex"]`) |
-| `agents` | string[] | Agentes instalados |
-| `created_files` | string[] | Todos os arquivos criados pelo Reversa (para uninstall seguro) |
+| Field | Type | Description |
+|-------|------|-------------|
+| `version` | string | Installed Reversa version |
+| `project` | string | Name of the legacy project |
+| `user_name` | string | User's name (for interactions) |
+| `answer_mode` | string | How the user answers gaps: `chat` or `file` |
+| `doc_level` | string \| null | Volume of generated documentation: `essential`, `complete` or `detailed`. Starts `null` and must be filled by the user's choice after the Scout. |
+| `output_folder` | string | Output folder for the specs (default: `_reversa_sdd`) |
+| `phase` | string \| null | Current phase. `null` = not started |
+| `completed` | string[] | Completed phases |
+| `pending` | string[] | Pending phases |
+| `checkpoints` | object | Completion record of each agent |
+| `engines` | string[] | Configured engines (e.g. `["claude-code", "codex"]`) |
+| `agents` | string[] | Installed agents |
+| `created_files` | string[] | Every file created by Reversa (for safe uninstall) |
+| `graph_mode` | string | Optional. Graph build mode chosen in the autonomous interview: `ast` or `semantic` |
 
-## Fases válidas
+All interactions and generated artifacts are in English.
 
-`reconhecimento` → `escavacao` → `interpretacao` → `geracao` → `revisao`
+## Valid phases
 
-## Regra ao escrever
+`reconnaissance` → `excavation` → `interpretation` → `generation` → `review`
 
-Nunca remova campos existentes. Apenas adicione ou atualize.
+## Writing rule
 
-## Onde NÃO escrever
+Never remove existing fields. Only add or update.
 
-A decisão de organização das specs (granularidade, pastas customizadas, sugestão original do Scout, timestamp da escolha) **não** vai no `state.json`. Ela é persistida em `.reversa/config.toml`, seção `[specs]`, conforme `references/step-03-specs-organization.md`. O `state.json` é estado runtime, o `config.toml` é decisão de longo prazo.
+## Where NOT to write
+
+The specs organization decision (granularity, custom folders, the Scout's original suggestion, timestamp of the choice) does **not** go in `state.json`. It is persisted in `.reversa/config.toml`, section `[specs]`, as described in `references/step-03-specs-organization.md`. `state.json` is runtime state; `config.toml` is a long-term decision.

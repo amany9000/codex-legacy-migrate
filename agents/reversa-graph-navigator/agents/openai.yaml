@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reversa Graph Navigator"
+  short_description: "Protocolo graph-first e lentes por agente do Reversa"
+policy:
+  allow_implicit_invocation: false

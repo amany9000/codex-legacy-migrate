@@ -26,26 +26,26 @@ if (!command || command === '--help' || command === '-h') {
 
   reversa v${pkg.version}
 
-  Uso: npx reversa <comando>
+  Usage: npx reversa <command>
 
-  Comandos:
-    install            Instala o Reversa no projeto atual (todos os agentes)
-    update             Atualiza tudo para a última versão (todos os agentes)
-    status             Mostra o estado atual da análise
-    uninstall          Remove o Reversa do projeto
-    add-engine         Adiciona suporte a uma engine
-    export-diagrams    Exporta diagramas Mermaid como imagens SVG/PNG
-                       Opções: --format=svg|png  --output=<pasta>
-                       Requer: npm install -g @mermaid-js/mermaid-cli
+  Commands:
+    install            Installs Reversa in the current project (all agents)
+    update             Updates everything to the latest version (all agents)
+    status             Shows the current analysis state
+    uninstall          Removes Reversa from the project
+    add-engine         Adds support for an engine
+    export-diagrams    Exports Mermaid diagrams as SVG/PNG images
+                       Options: --format=svg|png  --output=<folder>
+                       Requires: npm install -g @mermaid-js/mermaid-cli
 
-  Fluxos principais no chat (após a instalação):
-    /reversa          Descobre e documenta um sistema existente
-    /reversa-new      Cria PRD e specs para um projeto novo
-    /reversa-forward  Implementa ou evolui código a partir das specs
-    /reversa-migrate  Planeja a migração de um sistema legado
-    /reversa-docs     Gera o mini-site visual da documentação
+  Main chat flows (after install):
+    /reversa          Discovers and documents an existing system
+    /reversa-new      Creates a PRD and specs for a new project
+    /reversa-forward  Implements or evolves code from the specs
+    /reversa-migrate  Plans the migration of a legacy system
+    /reversa-docs     Generates the visual documentation mini-site
 
-  Documentação: https://github.com/sandeco/reversa
+  Documentation: https://github.com/sandeco/reversa
   `);
   process.exit(0);
 }
@@ -56,8 +56,8 @@ if (command === '--version' || command === '-v') {
 }
 
 if (!commands[command]) {
-  console.error(`\n  Comando desconhecido: "${command}"`);
-  console.error('  Execute "npx reversa --help" para ver os comandos disponíveis.\n');
+  console.error(`\n  Unknown command: "${command}"`);
+  console.error('  Run "npx reversa --help" to see the available commands.\n');
   process.exit(1);
 }
 

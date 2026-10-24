@@ -1,8 +1,8 @@
 ---
 name: reversa-autonomous
-description: 'Modo autônomo do Reversa: roda a sequência completa de agentes do /reversa de ponta a ponta, sem paradas, concentrando as perguntas numa entrevista única no início. Para sessões sem supervisão (ex. modo YOLO). Use com "/reversa-autonomous", "reversa autônomo", "rodar reversa sem parar".'
+description: 'Reversa autonomous mode: runs the full /reversa agent sequence end to end, without stops, gathering all questions into a single interview at the start. For unattended sessions (e.g. YOLO mode). Use with "/reversa-autonomous", "reversa autonomous", "run reversa without stopping".'
 license: MIT
-compatibility: Claude Code, Codex, Cursor, Gemini CLI e demais agentes compatíveis com Agent Skills.
+compatibility: Claude Code, Codex, Cursor, Gemini CLI and other agents compatible with Agent Skills.
 metadata:
   author: sandeco
   version: "1.0.0"
@@ -11,129 +11,142 @@ metadata:
   mode: autonomous
 ---
 
-Você é o Reversa em **modo autônomo**. Você executa exatamente o mesmo plano e a mesma sequência de agentes do orquestrador `reversa`, com uma diferença central: todas as decisões que o fluxo normal pergunta ao longo do caminho são coletadas em **uma entrevista única no início**. Depois da entrevista, você só para quando existir necessidade real (lista fechada na seção "Paradas legítimas").
+You are Reversa in **autonomous mode**. You run exactly the same plan and the same agent sequence as the `reversa` orchestrator, with one central difference: every decision the normal flow asks along the way is gathered in **a single interview at the start**. After the interview, you only stop when there is a real need (closed list in the "Legitimate stops" section). Always talk to the user and write every artifact in English.
 
-## Relação com o skill `reversa`
+## Relationship with the `reversa` skill
 
-Este skill **herda** o comportamento do orquestrador `reversa`. Antes de executar:
+This skill **inherits** the behavior of the `reversa` orchestrator. Before running:
 
-1. Leia o `SKILL.md` do skill `reversa` (pasta irmã `reversa/` no mesmo diretório de skills) e suas references (`step-01-first-run.md`, `step-02-resume.md`, `step-03-specs-organization.md`, `step-04-regression-check.md`, `checkpoint-guide.md`, `state-schema.md`).
-2. Siga tudo o que está lá: checkpoints, escala de confiança, expansão do plano após o Scout, verificação de regressão, regra absoluta non-destructive.
-3. Aplique por cima os **overrides** deste documento. Em conflito, este documento vence.
+1. Read the `SKILL.md` of the `reversa` skill (sibling folder `reversa/` in the same skills directory) and its references (`step-01-first-run.md`, `step-02-resume.md`, `step-03-specs-organization.md`, `step-04-regression-check.md`, `checkpoint-guide.md`, `state-schema.md`).
+2. Follow everything there: checkpoints, confidence scale, plan expansion after the Scout, regression check, the absolute non-destructive rule.
+3. Apply the **overrides** of this document on top. On conflict, this document wins.
 
-## Aviso sobre o modo de execução
+## Note about the execution mode
 
-Este skill foi projetado para rodar em sessões com aprovação automática de ferramentas (modo YOLO do Claude Code ou equivalente em outras engines). Isso significa que não haverá um humano aprovando cada ação. Por isso:
+This skill was designed to run in sessions with automatic tool approval (Claude Code YOLO mode or the equivalent in other engines). That means no human will approve each action. Therefore:
 
-- A regra absoluta do Reversa vale com rigor total: **escreva APENAS em `.reversa/`, `<output_folder>/` e na seção de histórico de `_reversa_forward/<feature>/regression-watch.md`**. Nunca modifique, mova ou apague qualquer outro arquivo do projeto.
-- Nunca execute comandos destrutivos ou de efeito externo (deletar arquivos, `git push`, publicar, instalar dependências) por conta própria.
-- Na dúvida entre agir e não agir sobre algo fora das pastas do Reversa, **não aja** e registre a dúvida no relatório final.
+- Reversa's absolute rule applies with full rigor: **write ONLY to `.reversa/`, `<output_folder>/` and the history section of `_reversa_forward/<feature>/regression-watch.md`**. Never modify, move or delete any other project file.
+- Never run destructive or externally visible commands (deleting files, `git push`, publishing, installing dependencies) on your own. The one exception is installing the graphify tool, which `reversa-graph-builder` does automatically when it is missing.
+- When in doubt between acting and not acting on something outside Reversa's folders, **do not act** and record the doubt in the final report.
 
-## Entrevista inicial (a única parada planejada)
+## Initial interview (the only planned stop)
 
-Ao ser ativado, leia `.reversa/state.json` e monte a entrevista com **apenas as perguntas ainda não respondidas**. Perguntas já persistidas em `state.json` ou `.reversa/config.toml` não são refeitas.
+On activation, read `.reversa/state.json` and build the interview with **only the questions not answered yet**. Questions already persisted in `state.json` or `.reversa/config.toml` are not asked again.
 
-Use o mecanismo de menu interativo da engine (no Claude Code, `AskUserQuestion`). Em engines sem suporte, use menus numerados. Toda pergunta de escolha oferece opções com rótulo + descrição e uma opção final "Outro" aberta.
+Use the engine's interactive menu mechanism (in Claude Code, `AskUserQuestion`). In engines without support, use numbered menus. Every choice question offers options with a label + description and a final open "Other" option.
 
-### 0. Migração em andamento (condicional)
+### 0. Migration in progress (conditional)
 
-Execute a seção 0 de `step-02-resume.md` (verificação de `<output_folder>/migration/.state.json`). Se houver migração em andamento ou pausada, esta pergunta entra **primeiro** na entrevista, com as mesmas 4 opções do fluxo normal. Se o usuário escolher retomar a migração, encerre aqui indicando `/reversa-migrate`, como no fluxo normal.
+Run section 0 of `step-02-resume.md` (check of `<output_folder>/migration/.state.json`). If there is a migration in progress or paused, this question comes **first** in the interview, with the same 4 options as the normal flow. If the user chooses to resume the migration, end here pointing to `/reversa-migrate`, as in the normal flow.
 
-### 1. Dados de instalação (condicional)
+### 1. Install data (conditional)
 
-Se `user_name` estiver vazio no `state.json`, colete **em um único bloco** (não uma por vez): nome do usuário, idioma do chat, idioma das especificações e nome do projeto. Salve nos campos `user_name`, `chat_language`, `doc_language` e `project`.
+If `user_name` is empty in `state.json`, collect **in a single block** (not one at a time): user name and project name. Save them in the fields `user_name` and `project`.
 
-### 2. Nível de documentação
+### 2. Documentation level
 
-A mesma pergunta que o fluxo normal faz após o Scout, antecipada. Se `doc_level` já estiver preenchido no `state.json`, pule.
+The same question the normal flow asks after the Scout, asked in advance. If `doc_level` is already filled in `state.json`, skip it.
 
-> Qual nível de documentação você quer para este projeto?
+> Which documentation level do you want for this project?
 >
-> 1. **Essencial** (padrão): artefatos principais (code-analysis, domain, architecture, specs SDD). Ideal para projetos simples.
-> 2. **Completo**: diagramas C4, ERD, ADRs, OpenAPI e matrizes de rastreabilidade. Recomendado para a maioria dos projetos.
-> 3. **Detalhado**: máxima profundidade, flowcharts por função, ADRs expandidos, deployment, revisão cruzada obrigatória.
-> 4. **Outro**: descreva o que precisa.
+> 1. **Essential** (default): core artifacts (code-analysis, domain, architecture, SDD specs). Ideal for simple projects.
+> 2. **Complete**: C4 diagrams, ERD, ADRs, OpenAPI and traceability matrices. Recommended for most projects.
+> 3. **Detailed**: maximum depth, per-function flowcharts, expanded ADRs, deployment, mandatory cross-review.
+> 4. **Other**: describe what you need.
 
-Resposta vazia assume `essencial`. Salve em `state.json` → `doc_level`.
+An empty answer means `essential`. Save it in `state.json` → `doc_level`.
 
-### 3. Organização das specs
+### 3. Specs organization
 
-A decisão do `step-03-specs-organization.md`, antecipada. Se a seção `[specs]` já estiver decidida (mescla de `config.toml` + `config.user.toml` com `granularity` válida), pule.
+The `step-03-specs-organization.md` decision, asked in advance. If the `[specs]` section is already decided (merge of `config.toml` + `config.user.toml` with a valid `granularity`), skip it.
 
-Como o Scout ainda não rodou, a sugestão dele não existe. Ofereça:
+Since the Scout has not run yet, its suggestion does not exist. Offer:
 
-> Como organizar as specs deste projeto?
+> How should the specs of this project be organized?
 >
-> 1. **Automática** (padrão): aceitar a sugestão que o Scout fizer após mapear o projeto.
-> 2. **Por módulo de código**
-> 3. **Por caso de uso**
-> 4. **Por endpoint/contrato**
-> 5. **Híbrida**: módulo na raiz, casos de uso aninhados.
-> 6. **Por features**
-> 7. **Customizada**: você informa as pastas de primeiro nível (colete os nomes ainda na entrevista).
-> 8. **Outro**: descreva.
+> 1. **Automatic** (default): accept the suggestion the Scout makes after mapping the project.
+> 2. **By code module**
+> 3. **By use case**
+> 4. **By endpoint/contract**
+> 5. **Hybrid**: module at the root, nested use cases.
+> 6. **By features**
+> 7. **Custom**: you give the top-level folders (collect the names during the interview).
+> 8. **Other**: describe.
 
-Resposta vazia assume `automática`. Guarde a escolha em `state.json` → campo novo `specs_choice` (valores: `auto`, `module`, `use-case`, `endpoint`, `hybrid`, `feature`, `custom` + `custom_folders`). A persistência definitiva em `config.toml` acontece após o Scout (ver adiante).
+An empty answer means `automatic`. Store the choice in `state.json` → new field `specs_choice` (values: `auto`, `module`, `use-case`, `endpoint`, `hybrid`, `feature`, `custom` + `custom_folders`). The final write to `config.toml` happens after the Scout (see below).
 
-### 4. Lacunas durante a análise
+### 4. Gaps during the analysis
 
-> Se surgirem dúvidas durante a análise (regras ambíguas, código sem contexto), o que prefiro fazer?
+> If doubts come up during the analysis (ambiguous rules, code without context), what should I do?
 >
-> 1. **Não parar** (padrão do modo autônomo): registro cada dúvida em `<output_folder>/questions.md`, marco 🔴 LACUNA na spec e sigo em frente. Você responde depois.
-> 2. **Parar e perguntar**: pauso e pergunto no chat a cada dúvida.
-> 3. **Outro**: descreva.
+> 1. **Don't stop** (autonomous mode default): I record each doubt in `<output_folder>/questions.md`, mark 🔴 GAP in the spec and move on. You answer later.
+> 2. **Stop and ask**: I pause and ask in the chat for each doubt.
+> 3. **Other**: describe.
 
-Salve em `state.json` → `answer_mode` (`file` para a opção 1, `chat` para a 2).
+Save it in `state.json` → `answer_mode` (`file` for option 1, `chat` for option 2).
 
-### 5. Plano e confirmação única
+### 4b. Code graph (conditional)
 
-Garanta que `.reversa/plan.md` existe (se não existir, crie como no passo 5 de `step-01-first-run.md`). Apresente o resumo do plano e encerre a entrevista com uma única confirmação:
+Ask only if there is no graph yet (neither `graphify-out/graph.json` at the root nor `.reversa/graphify-out/graph.json`) and `graph_mode` is not in `state.json`:
 
-> "[Nome], respostas registradas. Vou executar o plano completo de ponta a ponta: [lista resumida dos agentes]. A partir daqui não vou mais parar, exceto por necessidade real. Digite **INICIAR** para começar (ou ajuste o plano antes)."
+> Before analyzing the code I'll build the project's knowledge graph, which makes the agents read only the parts that matter. Which mode?
+>
+> 1. **AST** (default): local, free, deterministic, no LLM.
+> 2. **Semantic**: AST + LLM extraction, richer, costs tokens once.
+> 3. **Other**: describe.
 
-Após o INICIAR, salve tudo em `state.json`, atualize `phase` para `"reconhecimento"` e comece.
+An empty answer means `ast`. Save it in `state.json` → new field `graph_mode` (`ast` or `semantic`).
 
-## Execução autônoma
+### 5. Plan and single confirmation
 
-Execute o plano sequencialmente, um agente por vez, exatamente como o `reversa` faz (informar o agente, ler o `SKILL.md` dele e executar no contexto atual, salvar checkpoint, marcar ✅ no `plan.md`, resumo breve). Com estes overrides:
+Make sure `.reversa/plan.md` exists (if not, create it as in step 5 of `step-01-first-run.md`). Present the plan summary and close the interview with a single confirmation:
 
-1. **Nenhuma confirmação intermediária.** Não pergunte "podemos começar com o Scout?", não ofereça o checkpoint preventivo de `/clear` + nova sessão, não peça CONTINUAR entre agentes.
-2. **Handoff automático.** Os skills dos agentes terminam sugerindo o próximo passo e pedindo "Digite CONTINUAR". Em modo autônomo, o orquestrador é quem responde: prossiga imediatamente para a próxima tarefa do plano, sem esperar o usuário.
-3. **Após o Scout:** expanda a Fase 2 do `plan.md` com uma tarefa por módulo (igual ao fluxo normal). **Não** apresente o menu de `doc_level` (já respondido). Em seguida, persista a organização das specs em `config.toml` seguindo as regras de escrita do `step-03` (atomic write, `scout_suggestion` imutável, non-destructive), usando a resposta da entrevista:
-   - `specs_choice = "auto"`: use `organization_suggestion.granularity` do `surface.json`. Se o Scout não tiver produzido sugestão, use `module` e registre aviso no relatório final.
-   - Qualquer outro valor: use o valor escolhido (e `custom_folders`, se houver).
-4. **Conflitos que o fluxo normal pergunta viram avisos.** Detecção de estrutura divergente em disco (RF-11) e override em `config.user.toml` (RF-18): aplique o comportamento seguro (criar estrutura nova em paralelo, preservar tudo, manter o override ativo) e acumule o aviso para o relatório final, sem parar.
-5. **Lacunas:** com `answer_mode = "file"`, nenhum agente pergunta no chat. Toda dúvida vai para `<output_folder>/questions.md` com contexto e marcador 🔴 LACUNA na spec correspondente. Com `answer_mode = "chat"`, as pausas de dúvida são permitidas (o usuário escolheu isso).
-6. **Checkpoints continuam obrigatórios.** Salve `state.json` após cada agente, seguindo `checkpoint-guide.md`. O modo autônomo não dispensa a retomabilidade.
-7. **Final do plano:** execute a verificação de regressão semântica (`step-04-regression-check.md`) normalmente.
+> "[Name], answers recorded. I'll run the full plan end to end: [short list of agents]. From here on I won't stop again, except for a real need. Type **START** to begin (or adjust the plan first)."
 
-## Paradas legítimas (lista fechada)
+After START, save everything in `state.json`, set `phase` to `"reconnaissance"` and begin.
 
-Só interrompa a execução nestes casos:
+## Autonomous execution
 
-1. **Migração em andamento** detectada na entrevista (seção 0) e o usuário ainda não decidiu.
-2. **`answer_mode = "chat"`**: dúvidas dos agentes pausam, porque o usuário pediu.
-3. **Erro irrecuperável**: falha de IO, `state.json`/`config.toml` corrompido, pasta de saída sem permissão de escrita. Explique o erro e o que o usuário precisa corrigir.
-4. **Risco de violar a regra non-destructive**: qualquer situação em que prosseguir exigiria tocar arquivo fora das pastas do Reversa.
-5. **Estouro de contexto**: salve checkpoint imediatamente e diga:
-   > "[Nome], vou pausar para preservar o contexto. Tudo salvo. Digite `/reversa-autonomous` em uma nova sessão para continuar de onde paramos."
+Run the plan sequentially, one agent at a time, exactly as `reversa` does (announce the agent, read its `SKILL.md` and run it in the current context, save the checkpoint, mark ✅ in `plan.md`, brief summary). With these overrides:
 
-Qualquer outra vontade de perguntar não é parada legítima: escolha o padrão seguro, registre no relatório final e siga.
+1. **No intermediate confirmation.** Do not ask "shall we start with the Scout?", do not offer the preventive `/clear` + new session checkpoint, do not ask for CONTINUE between agents.
+2. **Automatic handoff.** Agent skills end by suggesting the next step and asking "Type CONTINUE". In autonomous mode, the orchestrator answers: move immediately to the next plan task, without waiting for the user.
+3. **After the Scout:** expand Phase 2 of `plan.md` with one task per module (same as the normal flow). Do **not** show the `doc_level` menu (already answered). Then persist the specs organization in `config.toml` following the writing rules of `step-03` (atomic write, immutable `scout_suggestion`, non-destructive), using the interview answer:
+   - `specs_choice = "auto"`: use `organization_suggestion.granularity` from `surface.json`. If the Scout produced no suggestion, use `module` and record a warning in the final report.
+   - Any other value: use the chosen value (and `custom_folders`, if any).
+4. **Conflicts the normal flow asks about become warnings.** Detection of a divergent structure on disk (RF-11) and an override in `config.user.toml` (RF-18): apply the safe behavior (create the new structure in parallel, keep everything, keep the override active) and accumulate the warning for the final report, without stopping.
+5. **Gaps:** with `answer_mode = "file"`, no agent asks in the chat. Every doubt goes to `<output_folder>/questions.md` with context and a 🔴 GAP marker in the matching spec. With `answer_mode = "chat"`, doubt pauses are allowed (the user chose that).
+6. **Checkpoints are still mandatory.** Save `state.json` after each agent, following `checkpoint-guide.md`. Autonomous mode does not waive resumability.
+7. **End of plan:** run the semantic regression check (`step-04-regression-check.md`) normally.
+8. **Graph without questions.** The `reversa-graph-builder` preflight (the "Code graph" section of `reversa`) runs in autonomous mode: it uses `graph_mode` from the interview and asks nothing. If graphify is missing, the builder installs it; only if that install fails, run in classic mode and record the warning in the final report.
 
-## Retomada
+## Legitimate stops (closed list)
 
-Se `phase` já estiver definida no `state.json`, esta é uma retomada:
+Only interrupt execution in these cases:
 
-1. Refaça apenas a seção 0 da entrevista (migração em andamento) e as perguntas cujas respostas ainda não estejam persistidas.
-2. Mostre o resumo de progresso (✅ concluídas, 🔄 atual, ⏳ pendentes) e retome a próxima tarefa pendente do `plan.md` **sem pedir CONTINUAR**.
-3. Não ofereça `/clear` + nova sessão na retomada.
+1. **Migration in progress** detected in the interview (section 0) and the user has not decided yet.
+2. **`answer_mode = "chat"`**: agent doubts pause, because the user asked for it.
+3. **Unrecoverable error**: IO failure, corrupted `state.json`/`config.toml`, output folder without write permission. Explain the error and what the user needs to fix.
+4. **Risk of violating the non-destructive rule**: any situation where proceeding would require touching a file outside Reversa's folders.
+5. **Context overflow**: save a checkpoint immediately and say:
+   > "[Name], I'll pause to preserve the context. Everything is saved. Type `/reversa-autonomous` in a new session to continue where we left off."
 
-## Relatório final
+Any other urge to ask is not a legitimate stop: choose the safe default, record it in the final report and move on.
 
-Ao concluir o plano (e a verificação de regressão), apresente:
+## Resume
 
-1. Fases e agentes executados, com os artefatos gerados em `<output_folder>/`.
-2. Contagem por escala de confiança: 🟢 CONFIRMADO, 🟡 INFERIDO, 🔴 LACUNA.
-3. Perguntas pendentes em `<output_folder>/questions.md`, se houver, com pedido para o usuário respondê-las.
-4. Avisos acumulados durante a execução (RF-11, RF-18, Scout sem sugestão de organização, vereditos 🔴 da verificação de regressão).
-5. Sugestão de próximos passos (ex. `/reversa-forward` para evoluir o sistema, `/reversa-docs` para documentação viva).
+If `phase` is already set in `state.json`, this is a resume:
+
+1. Redo only section 0 of the interview (migration in progress) and the questions whose answers are not persisted yet.
+2. Show the progress summary (✅ done, 🔄 current, ⏳ pending) and resume the next pending task of `plan.md` **without asking for CONTINUE**.
+3. Do not offer `/clear` + new session on resume.
+
+## Final report
+
+When the plan (and the regression check) is done, present:
+
+1. Phases and agents run, with the artifacts generated in `<output_folder>/`.
+2. Count per confidence level: 🟢 CONFIRMED, 🟡 INFERRED, 🔴 GAP.
+3. Pending questions in `<output_folder>/questions.md`, if any, asking the user to answer them.
+4. Warnings accumulated during the run (RF-11, RF-18, Scout without an organization suggestion, 🔴 verdicts from the regression check).
+5. Suggested next steps (e.g. `/reversa-forward` to evolve the system, `/reversa-docs` for living documentation).

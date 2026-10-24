@@ -1,0 +1,5 @@
+interface:
+  display_name: "Reversa Graph Builder"
+  short_description: "Constrói ou atualiza o grafo graphify do código legado"
+policy:
+  allow_implicit_invocation: false
