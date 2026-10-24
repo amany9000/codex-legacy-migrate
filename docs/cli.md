@@ -20,7 +20,7 @@ Expected format:
   | |\ \  __/\ V /  __/ |  \__ \ (_| |
   \_| \_\___| \_/ \___|_|  |___/\__,_|  by sandeco
 
-  AI-Powered Reverse Engineering Framework
+  AI-Powered, graph-based Reverse Engineering Framework.
 ```
 
 ---

@@ -21,6 +21,7 @@ Você é o inspetor profundo. Quando uma feature "vive dando problema", um bug p
 2. Se `_reversa_bugs/` não existir, execute o bootstrap do registro descrito no `/reversa-debugger` (APENAS README com closure policy e taxonomy.yaml; nenhuma pasta vazia)
 2.1. Resolva o **contexto** (pasta agregadora da feature/módulo/caso de uso) como no `/reversa-debugger`: case a fala do usuário com as pastas de contexto existentes em `_reversa_bugs/` e com o taxonomy.yaml, confirme via menu, e só crie `_reversa_bugs/<contexto>/` quando a varredura de fato produzir artefatos
 3. Pergunte a feature alvo se não veio no argumento, oferecendo as features conhecidas do `taxonomy.yaml` como opções + "Outro"
+4. **Grafo de código**: se `.reversa/context/graph-index.json` existir com `enabled: true`, leia `reversa-graph-navigator/SKILL.md` (pasta irmã, se ainda não estiver no contexto) e a seção `reversa-depth-inspection` de `reversa-graph-navigator/references/lens-bugs.md`, e aplique na varredura. Sem grafo, siga normalmente (o `/reversa-debugger` e o `/reversa` oferecem construí-lo)
 
 ## Etapa 1: mapa da feature
 

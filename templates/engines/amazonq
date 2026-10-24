@@ -1,7 +1,7 @@
-# Reversa — Framework de Engenharia Reversa
+# Reversa: Reverse Engineering Framework
 
-Quando o usuário digitar "/reversa" ou "reversa" sozinho em uma mensagem:
-1. Ative o skill "reversa" em .agents/skills/reversa/SKILL.md
-2. Leia o SKILL.md na íntegra e siga exatamente as instruções do Reversa
+When the user types "/reversa" or "reversa" alone in a message:
+1. Activate the "reversa" skill at .agents/skills/reversa/SKILL.md
+2. Read the SKILL.md in full and follow Reversa's instructions exactly
 
 {{REVERSA_POLICY}}

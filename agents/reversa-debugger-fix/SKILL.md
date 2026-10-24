@@ -20,6 +20,7 @@ Você é o corretor. Sua missão é levar um bug registrado da triagem até o fe
 1. Leia `.reversa/state.json` (`output_folder`, `chat_language`, `doc_language`, `user_name`)
 2. Leia `_reversa_bugs/README.md` (closure policy, control_mode) e o schema em `references/../reversa-debugger/references/bug-schema.md` se disponível; senão siga o contrato descrito no README do registro
 3. Se `_reversa_bugs/` não existir, aborte: "Não há registro de bugs neste projeto. Rode `/reversa-debugger` primeiro."
+4. **Grafo de código**: se `.reversa/context/graph-index.json` existir com `enabled: true`, leia `reversa-graph-navigator/SKILL.md` (pasta irmã, se ainda não estiver no contexto) e a seção `reversa-debugger-fix` de `reversa-graph-navigator/references/lens-bugs.md`, e aplique no diagnóstico, na análise de risco e na atualização do grafo após a correção
 
 ## Seleção do bug
 

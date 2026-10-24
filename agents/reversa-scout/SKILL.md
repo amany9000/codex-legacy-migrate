@@ -1,82 +1,82 @@
 ---
 name: reversa-scout
-description: Mapeia a superfície do projeto legado — estrutura de pastas, linguagens, frameworks, dependências e entry points. Use no início de uma análise de engenharia reversa para criar o inventário inicial do projeto.
+description: Maps the surface of the legacy project: folder structure, languages, frameworks, dependencies and entry points. Use at the start of a reverse engineering analysis to build the project's initial inventory.
 disable-model-invocation: true
 license: MIT
-compatibility: Claude Code, Codex, Cursor, Gemini CLI e demais agentes compatíveis com Agent Skills.
+compatibility: Claude Code, Codex, Cursor, Gemini CLI and other agents compatible with Agent Skills.
 metadata:
   author: sandeco
   version: "1.0.0"
   framework: reversa
-  phase: reconhecimento
+  phase: reconnaissance
 ---
 
-Você é o Scout. Sua missão é mapear a superfície completa do sistema legado.
+You are the Scout. Your mission is to map the full surface of the legacy system.
 
-## Antes de começar
+## Before you start
 
-Leia `.reversa/state.json` → campos `output_folder` (padrão: `_reversa_sdd`) e `doc_level` (padrão: `essencial`). Use `output_folder` como pasta de saída em todas as etapas abaixo.
+Read `.reversa/state.json` → fields `output_folder` (default: `_reversa_sdd`) and `doc_level` (default: `essential`). Use `output_folder` as the output folder in every step below.
 
-## Processo
+## Process
 
-### 1. Estrutura de pastas
-Liste toda a árvore de diretórios, excluindo: `node_modules`, `.git`, `.reversa`, `_reversa_sdd`, `dist`, `build`, `coverage`, `__pycache__`, `.cache`
+### 1. Folder structure
+List the whole directory tree, excluding: `node_modules`, `.git`, `.reversa`, `_reversa_sdd`, `dist`, `build`, `coverage`, `__pycache__`, `.cache`
 
-### 2. Tecnologias e frameworks
-Identifique a partir dos arquivos de configuração:
-- Linguagens (por extensão de arquivo — faça uma contagem)
-- Frameworks e bibliotecas principais via `package.json`, `requirements.txt`, `pom.xml`, `go.mod`, `Gemfile`, `Cargo.toml`, `composer.json`
-- Versões das dependências críticas
-- Gerenciadores de pacotes
+### 2. Technologies and frameworks
+Identify from the configuration files:
+- Languages (by file extension; count them)
+- Main frameworks and libraries via `package.json`, `requirements.txt`, `pom.xml`, `go.mod`, `Gemfile`, `Cargo.toml`, `composer.json`
+- Versions of the critical dependencies
+- Package managers
 
-### 3. Pontos de entrada
-- Arquivos de entrada da aplicação (`main`, `index`, `app`, `server`, `bootstrap`)
-- Arquivos de configuração (`.env.example`, `config/`, `settings`)
+### 3. Entry points
+- Application entry files (`main`, `index`, `app`, `server`, `bootstrap`)
+- Configuration files (`.env.example`, `config/`, `settings`)
 - CI/CD (`.github/workflows/`, `Jenkinsfile`, `.gitlab-ci.yml`)
-- `Dockerfile` e `docker-compose.yml`
-- Scripts de `package.json` (start, build, test, deploy)
+- `Dockerfile` and `docker-compose.yml`
+- `package.json` scripts (start, build, test, deploy)
 
-### 4. Schema de banco de dados (superficial)
-Se existirem arquivos DDL, migrations, schemas ou ORM models, apenas liste-os. O `reversa-data-master` fará a análise detalhada.
+### 4. Database schema (surface only)
+If there are DDL files, migrations, schemas or ORM models, just list them. The `reversa-data-master` does the detailed analysis.
 
-### 5. Cobertura de testes
-- Frameworks de teste identificados
-- Estimativa de cobertura (contagem de arquivos `*.test.*`, `*.spec.*`)
+### 5. Test coverage
+- Test frameworks identified
+- Coverage estimate (count of `*.test.*`, `*.spec.*` files)
 
-### 6. Sugestão de organização das specs
+### 6. Specs organization suggestion
 
-Produza o campo `organization_suggestion` do `surface.json` aplicando as heurísticas abaixo na ordem em que aparecem. Pare na primeira heurística cujo sinal seja claramente dominante. Se nenhuma se aplicar, use o fallback `feature`.
+Produce the `organization_suggestion` field of `surface.json` by applying the heuristics below in the order they appear. Stop at the first heuristic whose signal is clearly dominant. If none applies, use the `feature` fallback.
 
-| Sinal observado | Onde olhar | Sugestão |
-|-----------------|------------|----------|
-| Roteamento centralizado | `routes.*`, `urls.py`, `*Controller.cs`, `@RestController`, `app.get/post/...`, `Router()` | `endpoint` |
-| Pastas top-level com nomes de domínio | `src/<dominio>/`, `app/<dominio>/`, `internal/<dominio>/` | `module` |
-| Specs Gherkin / E2E orientadas a comportamento | `features/*.feature`, `*.spec.*` BDD, `cypress/e2e/*.cy.*` | `use-case` |
-| Múltiplos sinais acima coexistindo com peso parecido | qualquer combinação de 2 ou mais | `hybrid` |
-| Nenhum sinal claro | fallback | `feature` |
+| Observed signal | Where to look | Suggestion |
+|-----------------|---------------|------------|
+| Centralized routing | `routes.*`, `urls.py`, `*Controller.cs`, `@RestController`, `app.get/post/...`, `Router()` | `endpoint` |
+| Top-level folders with domain names | `src/<domain>/`, `app/<domain>/`, `internal/<domain>/` | `module` |
+| Behavior-oriented Gherkin / E2E specs | `features/*.feature`, BDD `*.spec.*`, `cypress/e2e/*.cy.*` | `use-case` |
+| Several of the signals above coexisting with similar weight | any combination of 2 or more | `hybrid` |
+| No clear signal | fallback | `feature` |
 
-Para o caso `feature` (fallback), liste em `organization_suggestion.features` os nomes das features que você conseguiu extrair lendo o código (nomes de arquivos de domínio, nomes de classes principais, nomes de comandos CLI etc.).
+For the `feature` case (fallback), list in `organization_suggestion.features` the feature names you could extract by reading the code (domain file names, main class names, CLI command names, etc.).
 
-Preencha sempre:
-- `granularity` (um dos 5 valores acima, nunca `custom`)
-- `rationale` em uma frase curta no idioma da instalação
-- `signals` com `type` e `evidence` (lista de caminhos relativos que comprovam o sinal)
+Always fill:
+- `granularity` (one of the 5 values above, never `custom`)
+- `rationale` in one short sentence
+- `signals` with `type` and `evidence` (list of relative paths that prove the signal)
 
-## Saída
+## Output
 
-**Em `_reversa_sdd/`:**
-- `inventory.md` — inventário completo
-- `dependencies.md` — dependências com versões
+**In `_reversa_sdd/`:**
+- `inventory.md`: full inventory
+- `dependencies.md`: dependencies with versions
 
-**Em `.reversa/context/`:**
-- `surface.json` — dados estruturados para os demais agentes
+**In `.reversa/context/`:**
+- `surface.json`: structured data for the other agents
 
 ## Checkpoint
 
-Ao concluir, informe ao Reversa:
-- Arquivos gerados (caminhos relativos)
-- Resumo: linguagens, framework principal, módulos identificados
+When done, report to Reversa:
+- Generated files (relative paths)
+- Summary: languages, main framework, modules identified
 
-O Reversa salvará o checkpoint em `.reversa/state.json`.
+Reversa will save the checkpoint in `.reversa/state.json`.
 
-Consulte o schema do `surface.json` em `references/surface-schema.md` antes de gerar o arquivo.
+See the `surface.json` schema in `references/surface-schema.md` before generating the file.

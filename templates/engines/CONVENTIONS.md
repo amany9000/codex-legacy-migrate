@@ -1,26 +1,26 @@
 # Reversa
 
-> Framework de Engenharia Reversa instalado neste projeto.
+> Reverse Engineering Framework installed in this project.
 
-## Como usar
+## How to use
 
-Use o fluxo adequado no chat:
+Use the right flow in the chat:
 
-- `reversa` — descobrir e documentar um sistema existente
-- `reversa-new` — criar PRD e specs para um projeto novo
-- `reversa-forward` — implementar ou evoluir código a partir das specs
-- `reversa-migrate` — planejar a migração de um sistema legado
-- `reversa-docs` — gerar o mini-site visual da documentação
-- `impeccable` — design de front-end: criticar, auditar e polir interfaces (Impeccable, Apache 2.0)
-- `reversa-agents-help` — consultar o catálogo completo de agentes
+- `reversa`: discover and document an existing system
+- `reversa-new`: create a PRD and specs for a new project
+- `reversa-forward`: implement or evolve code from the specs
+- `reversa-migrate`: plan the migration of a legacy system
+- `reversa-docs`: generate the visual documentation mini-site
+- `impeccable`: front-end design: critique, audit and polish interfaces (Impeccable, Apache 2.0)
+- `reversa-agents-help`: browse the full agent catalog
 
-## Comportamento ao ativar
+## Activation behavior
 
-Quando o usuário escrever `reversa` sozinho:
+When the user writes `reversa` alone:
 
-1. Ative o skill `reversa` disponível em `.agents/skills/reversa/SKILL.md`
-2. Leia o SKILL.md na íntegra e siga exatamente as instruções do Reversa
+1. Activate the `reversa` skill at `.agents/skills/reversa/SKILL.md`
+2. Read the SKILL.md in full and follow Reversa's instructions exactly
 
-## Regra não-negociável
+## Non-negotiable rule
 
 {{REVERSA_POLICY}}
