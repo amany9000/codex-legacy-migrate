@@ -26,7 +26,7 @@ if (!command || command === '--help' || command === '-h') {
 
   reversa v${pkg.version}
 
-  Usage: npx reversa <command>
+  Usage: npx graph-propagate <command>
 
   Commands:
     install            Installs Reversa in the current project (all agents)
@@ -80,6 +80,6 @@ if (command === 'security-scan' || command === '--security-scan') {
   await mod.default(args);
 } else {
   console.error(`\n  Unknown command: "${command}"`);
-  console.error('  Run "npx reversa --help" to see the available commands.\n');
+  console.error('  Run "npx graph-propagate --help" to see the available commands.\n');
   process.exitCode = 1;
 }

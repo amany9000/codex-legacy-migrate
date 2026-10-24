@@ -57,7 +57,7 @@ The Claude Code subagents and the hook settings from the upstream repository are
 
 ## Keeping it current
 
-`scripts/sync-impeccable.mjs` resolves the latest upstream release tag (`skill-vX.Y.Z`), clones it and replaces `agents/impeccable/`. A GitHub Action runs it daily; when a new release exists it bumps the Reversa patch version and opens a pull request. After the merge is published, `npx reversa update` reinstalls every agent, so your project receives the new Impeccable with no extra step.
+`scripts/sync-impeccable.mjs` resolves the latest upstream release tag (`skill-vX.Y.Z`), clones it and replaces `agents/impeccable/`. A GitHub Action runs it daily; when a new release exists it bumps the Reversa patch version and opens a pull request. After the merge is published, `npx graph-propagate update` reinstalls every agent, so your project receives the new Impeccable with no extra step.
 
 ```bash
 node scripts/sync-impeccable.mjs            # latest release

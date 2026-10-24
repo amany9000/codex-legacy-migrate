@@ -1,7 +1,7 @@
 # Graph Propagate
 
 **Graph-guided legacy migration for AI agents.**
-Graph Propagate is a fork of [Reversa](https://github.com/sandeco/reversa) that gives its agents a real, offline code graph ([Graphify](https://github.com/Graphify-Labs/graphify)) instead of making them read raw files, and wraps the migration in full-repository security scans, a local dashboard and an MCP server.
+Graph Propagate is a Codex Plugin that gives its agents a graph-based ([Graphify](https://github.com/Graphify-Labs/graphify)) Legacy Code Migration Capabilities. It's also configured with security scans, a local dashboard and an MCP server.
 
 <p align="center">
   <img src="docs/img/grsphify.png" alt="Graphify knowledge graph of the migrated project" width="800"><br>
@@ -17,11 +17,10 @@ Graph Propagate is a fork of [Reversa](https://github.com/sandeco/reversa) that 
 | Migration MCP repo | https://github.com/adarshsaraf1234/migration-mcp |
 | Graphify MCP (hosted) | https://migration-mcp-trial-production.up.railway.app/mcp |
 | npm package published URL | https://www.npmjs.com/package/graph-propagate/v/1.4.0
- |
 
 ---
 
-## Why this fork exists
+## Reversa for Code Back-propagation
 
 <p align="center">
   <img src="docs/img/reversa-paper.png" alt="Reversa paper" width="500"><br>
@@ -35,9 +34,7 @@ Reversa turns a legacy system into executable specifications, but its agents (Sc
 - Nothing produces a real call graph (`reversa-arquitetura-3d` waits for a `deps.json` nobody generates).
 - Nothing checks what a migrated slice actually changed, or whether it introduced security regressions.
 
-This fork adds the missing structure and the missing safety checks. **Without Graphify installed, everything runs exactly as upstream Reversa.**
-
-## What this fork adds
+## Core Capabilities
 
 | Capability | What it does |
 |---|---|
@@ -110,30 +107,8 @@ The security and risk engine works seamlessly across three execution modes:
 
 ### 3. Live Control Tower Dashboard (`http://localhost:4400`)
 
-Launch the interactive **Migration & Security Control Tower** to visualize your codebase's dependency graph, blast radius, and CWE pain points in real time:
+Launch the interactive **Migration & Security Control Tower** to visualize your codebase's dependency graph, blast radius, and CWE pain points in real time.
 
-```bash
-# Run a standalone security + Graphify blast-radius audit in the terminal
-npm run security:scan
-
-# Launch the Live Control Tower Dashboard on http://localhost:4400
-npm run dashboard
-
-
-## Installation
-
-Prerequisites: Node.js 21+ (Node.js 22.13+ if you run the security scans), Python 3.10+ with [`uv`](https://docs.astral.sh/uv/) (Graphify).
-
-```bash
-# 1. Install the Graphify CLI (Reversa never installs Python packages itself)
-uv tool install graphifyy
-
-# 2. Clone this fork
-git clone https://github.com/amany9000/codex-legacy-migrate.git
-
-# 3. In the root of the legacy project
-node /path/to/codex-legacy-migrate/bin/reversa.js install
-```
 
 <p align="center">
   <img src="docs/img/reversa-installer.png" alt="Reversa installer" width="700"><br>
@@ -203,9 +178,9 @@ The `reversa-security-audit` skill runs [Codex Security](https://www.npmjs.com/p
 ```bash
 npx @openai/codex-security login          # or configure a supported API key
 
-npx reversa security-scan --target ./legacy-app --phase pre
-npx reversa security-scan --target ./legacy-app --phase post --max-cost-usd 5
-npx reversa security-scan --target ./legacy-app --phase pre --dry-run   # verify target and phase only
+npx graph-propagate security-scan --target ./legacy-app --phase pre
+npx graph-propagate security-scan --target ./legacy-app --phase post --max-cost-usd 5
+npx graph-propagate security-scan --target ./legacy-app --phase pre --dry-run   # verify target and phase only
 ```
 
 - Run `pre` before source changes and `post` after the migrated source is present.
@@ -218,7 +193,7 @@ npx reversa security-scan --target ./legacy-app --phase pre --dry-run   # verify
 ## Dashboard
 
 ```bash
-npx reversa dashboard --target ./legacy-app
+npx graph-propagate dashboard --target ./legacy-app
 ```
 
 Binds to `127.0.0.1:4400`, reads Reversa state without changing it, and can trigger a full-repository security scan. Run it in a separate terminal.
@@ -309,38 +284,8 @@ The NanoHTTPD migration, run through Graph Propagate:
 6. `security-scan --phase post` and compare with the pre scan.
 7. Remove `graphify` from `PATH` and show the pipeline still completes with a single "graph unavailable" note.
 
-## What to commit
-
-Commit `.agents/`, `AGENTS.md`, `_reversa_sdd/`, `_reversa_forward/` and `.reversa/` so teammates can resume a run. Add these lines to the target repo's `.gitignore`:
-
-```
-# Reversa
-.reversa/config.user.toml
-.reversa/graphify-out/
-.reversa/context/graph-usage.jsonl
-```
-
-The graph is rebuilt offline in seconds and changes on every rebuild. Only one person should run an analysis at a time to avoid merge conflicts in `.reversa/state.json`.
-
-## Testing
-
-Testing is currently manual: install into a small sample legacy project, run each `reversa graph` command, run `/reversa` once with Graphify installed and once with it removed, then run `reversa update` and confirm the entry file is not reported as modified. The Migration MCP has its own unit tests (see above).
 
 ## Safety
 
 - Graph extraction is offline; source code is not sent to an LLM for it.
 - Agents write only to `.reversa/` and the output folders unless an explicit, approved gate says otherwise.
-- Security scans run before and after migration; incomplete scans are never reported as clean.
-- Unexpected graph changes after a migrated slice go to a human checkpoint.
-- Back up your project and commit to Git before starting. AI agents can make mistakes.
-
-## Credits and licenses
-
-| Component | Author | License |
-|---|---|---|
-| [Reversa](https://github.com/sandeco/reversa) | sandeco | MIT |
-| [Graphify](https://github.com/Graphify-Labs/graphify) | Graphify Labs | Apache-2.0 / MIT (external CLI, not bundled) |
-| [Impeccable](https://github.com/pbakaus/impeccable) | Paul Bakaus | Apache-2.0 (Front-end Team, inherited from Reversa) |
-| [NanoHTTPD](https://github.com/NanoHttpd/nanohttpd) | NanoHTTPD contributors | BSD-3-Clause (demo target) |
-
-This fork is released under the same MIT license as Reversa.

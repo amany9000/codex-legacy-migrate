@@ -9,7 +9,7 @@ If `user_name` is already filled (CLI install), skip section **3. Information ga
 ## 2. Version check
 
 Compare `.reversa/version` with the npm registry. If a newer version exists, mention it discreetly:
-> "💡 A new version is available. Run `npx reversa update` whenever you want to update."
+> "💡 A new version is available. Run `npx graph-propagate update` whenever you want to update."
 
 ## 3. Information gathering (only if state.json is empty)
 
