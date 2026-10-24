@@ -7,7 +7,9 @@
   },
   "type": "module",
   "scripts": {
-    "verify": "python3 scripts/verify-invocation.py && node scripts/test-installer-transport.mjs"
+    "verify": "python3 scripts/verify-invocation.py && node scripts/test-installer-transport.mjs",
+    "test": "node --test",
+    "security:scan": "node src/security/cli-audit.js"
   },
   "keywords": [
     "legacy",
@@ -24,6 +26,7 @@
     "agents/",
     "bin/",
     "lib/",
+    "src/",
     "templates/",
     "README.md",
     "LICENSE"
@@ -42,6 +45,7 @@
     "node": ">=18.20.2"
   },
   "dependencies": {
+    "@openai/codex-security": "^0.6.0",
     "chalk": "^5.3.0",
     "inquirer": "^9.2.0",
     "ora": "^7.0.1",

@@ -253,6 +253,8 @@ Use after `/reversa` when the goal is to rebuild the legacy on a modern stack. A
 | **Screen Translator** | Translates legacy screens into executable specs in 2 phases (mode decision + spec generation), emitting golden files for the Inspector when an oracle is available |
 | **Inspector** | Defines how to prove the new system is behaviorally equivalent to the legacy, with Gherkin parity specs |
 
+The separate **Security Audit** skill (`/reversa-security-audit`) runs full-repository Codex Security scans before and after source changes and reports Graphify-weighted risk. It is invoked explicitly; completing the migration planning workflow does not itself imply that source migration has happened.
+
 ### Pricing and Size Team
 
 Seven agents led by `/reversa-pricing`: Advisor (sale model), Research (web references with sources), Profile (billing profile, with an 'I know' and a 'research for me' mode), Size and Estimate (per feature: three scenarios), Product (break-even calculator for licenses, rentals, subscriptions and app stores). Only Research touches the web.
@@ -434,10 +436,24 @@ npx reversa status       # Show current analysis state
 npx reversa update       # Update everything to the latest version (all agents)
 npx reversa add-engine   # Add support for a new engine
 npx reversa uninstall    # Remove Reversa from the project
+npx reversa security-scan --target ./legacy-app --phase pre
+npx reversa security-scan --target ./legacy-app --phase post --max-cost-usd 5
 ```
 
 The `update` command detects files you modified via SHA-256 and never overwrites customizations.
 The `uninstall` command removes only files created by Reversa — nothing from the legacy project is touched.
+
+### Full-repository security posture
+
+The `reversa-security-audit` skill runs Codex Security against the full target repository. Graphify remains the focused context for Reversa's migration skills; it does not narrow security scan coverage. Run a `pre` scan before source changes and a `post` scan after the migrated source is present. The CLI compares findings only when both scans completed with complete coverage. Failed or incomplete scans are never reported as clean.
+
+The Codex Security SDK requires Node.js 22.13+ (22.x), 24.x, or 26.x and Python 3.10+. Sign in with `npx @openai/codex-security login` or configure an API key supported by Codex Security. Reversa does not run a heuristic substitute when Codex Security is unavailable. Optional spend limits use `--max-cost-usd`.
+
+Scan JSON, the scorecard, and Markdown report are stored in `.reversa/security/`. That directory ignores generated report files in Git and uses restrictive filesystem permissions where supported; reports can contain sensitive source excerpts.
+
+Graph-weighted risk combines vulnerability exposure (45%), Graphify blast radius (30%), graph uncertainty (15%), and verification deficit (10%). If Graphify data is unavailable, the security posture remains available but the composite score is marked unavailable. Findings without a Graphify file match stay visible as unmapped repository findings.
+
+The `security:scan` npm script is also available when running from the Reversa package. Use `--dry-run` with the CLI security command to verify target and phase selection without starting a scan.
 
 ---
 

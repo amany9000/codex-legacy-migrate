@@ -37,6 +37,8 @@ if (!command || command === '--help' || command === '-h') {
     export-diagrams    Exports Mermaid diagrams as SVG/PNG images
                        Options: --format=svg|png  --output=<folder>
                        Requires: npm install -g @mermaid-js/mermaid-cli
+    security-scan      Run a full-repository Codex Security audit
+                       Options: --target=<path> --phase=pre|post --max-cost-usd=<amount>
 
   Main chat flows (after install):
     /reversa          Discovers and documents an existing system
@@ -55,11 +57,14 @@ if (command === '--version' || command === '-v') {
   process.exit(0);
 }
 
-if (!commands[command]) {
+if (command === 'security-scan' || command === '--security-scan') {
+  const { runCli } = await import('../src/security/cli-audit.js');
+  process.exitCode = await runCli(args);
+} else if (commands[command]) {
+  const mod = await commands[command]();
+  await mod.default(args);
+} else {
   console.error(`\n  Unknown command: "${command}"`);
   console.error('  Run "npx reversa --help" to see the available commands.\n');
-  process.exit(1);
+  process.exitCode = 1;
 }
-
-const mod = await commands[command]();
-await mod.default(args);
