@@ -24,9 +24,15 @@ Discovery Team:        Scout → Archaeologist → Detective → Architect → W
                                        _reversa_sdd/
                                               │
                                               ▼
+                         Security baseline (full repository)
+                                               │
+                                               ▼
 Migration Team:        Paradigm Advisor → Curator → Strategist → Designer → Screen Translator → Inspector
                                               │
                                               ▼
+                         Security post-migration gate
+                                               │
+                                               ▼
                                   _reversa_sdd/migration/
                                               │
                                               ▼
@@ -78,6 +84,18 @@ Minimum questions (one at a time or grouped, depending on the engine):
 **Do not ask about the paradigm. Do not ask about appetite.** Those are the Paradigm Advisor's responsibility.
 
 Render `_reversa_sdd/migration/migration_brief.md` using the template in `references/templates/migration_brief.md`.
+
+### Mandatory security baseline (before migration agents)
+
+Before initializing or resuming migration agents, run a completed full-repository Codex Security scan:
+
+```text
+npx reversa security-scan --target <repository-root> --phase pre
+```
+
+This scan is independent of Graphify: Graphify traversal remains bounded migration context, while security covers the entire repository. Require `status: complete` and complete coverage. If the scan fails, the runtime is unavailable, or coverage is incomplete, stop the migration, record `security.pre.status = failed|incomplete` in `_reversa_sdd/migration/.state.json`, and ask the user to resolve it. Never treat an unavailable or partial scan as clean.
+
+Keep the private evidence under `<repository-root>/.reversa/security/` and record its path and completion time in migration state.
 
 ### Step 4: Initialize `.state.json`
 
@@ -140,6 +158,16 @@ This mechanism is generic: new agents can adopt it by declaring their checkpoint
 | Screen Translator (Phase 1) | Approve `screen_modernization_decision.md` (literal / modernized / hybrid). In hybrid mode, explicit lists of screens per mode are mandatory. On a legacy system without UI, the agent skips without a pause. |
 | Screen Translator (Phase 2) | Approve pending deviations in `screen_deviation_log.md` (if any) before moving to the Inspector |
 | Inspector | (no pause; goes on to the handoff) |
+
+### Mandatory post-migration security gate
+
+After the Inspector completes (and before generating the final handoff), run:
+
+```text
+npx reversa security-scan --target <repository-root> --phase post
+```
+
+Require a completed scan with adequate coverage, then generate the security scorecard and compare pre/post findings. If this gate fails or coverage is incomplete, keep the migration incomplete and set `security.gateStatus = blocked`; do not report “Migration complete.” Only after a successful post scan may the handoff include posture, open/remediated findings, unmatched findings, and risk grades.
 
 ### Step 6: Human pause (`human_decision_gate`)
 
@@ -226,11 +254,11 @@ Always show an explicit warning before starting, listing every default applied.
 
 ## Output layout (cross-cutting)
 
-This agent is part of the Migration Team and writes exclusively to `_reversa_sdd/migration/`. That folder cuts across the organization chosen in `[specs]` of `config.toml`, outside the Discovery Team's unit folders (feature folders). Do not apply the `<unit>/requirements.md|design.md|tasks.md` structure here; it belongs to the Writer.
+This agent is part of the Migration Team and writes exclusively to `_reversa_sdd/migration/`, plus private security evidence in `.reversa/security/`. That folder cuts across the organization chosen in `[specs]` of `config.toml`, outside the Discovery Team's unit folders (feature folders). Do not apply the `<unit>/requirements.md|design.md|tasks.md` structure here; it belongs to the Writer.
 
 ## Absolute rules
 
-- **Do not modify anything outside `_reversa_sdd/migration/`.** The only exceptions: the graph in `.reversa/graphify-out/` and `.reversa/context/graph-index.json`, managed by `reversa-graph-builder`, and the usage log in `.reversa/context/graph-usage.jsonl`.
+- **Do not modify anything outside `_reversa_sdd/migration/`.** The only exceptions: Graphify outputs in `.reversa/graphify-out/` and `.reversa/context/`, and private security reports/scorecards in `.reversa/security/` created by the mandatory scans.
 - Pre-existing artifacts in `_reversa_sdd/` are **read**, never modified.
 - Automatic backup before any destructive operation.
 - The default mode is interactive. `--auto` is explicit and shows the defaults before applying them.

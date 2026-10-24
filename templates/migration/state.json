@@ -40,5 +40,10 @@
     "unverifiedFindings": null,
     "status": "not_run",
     "scorecardPath": ".reversa/security/security-scorecard.json"
+  },
+  "security": {
+    "pre": {"status": "pending", "completedAt": null, "reportPath": ".reversa/security/security-pre.json"},
+    "post": {"status": "pending", "completedAt": null, "reportPath": ".reversa/security/security-post.json"},
+    "gateStatus": "pending"
   }
 }
