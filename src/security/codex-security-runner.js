@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const VALID_PHASES = new Set(['pre', 'post']);
+const DEFAULT_SECURITY_MODEL = 'gpt-5.6-terra';
 
 function assertSupportedRuntime() {
   const [major, minor] = process.versions.node.split('.').map(Number);
@@ -78,13 +79,14 @@ export async function runCodexSecurityScan(targetDir = process.cwd(), phase = 'p
   const startedAt = new Date().toISOString();
   let scanner;
   let payload;
+  const model = options.model || process.env.CODEX_SECURITY_MODEL || DEFAULT_SECURITY_MODEL;
   try {
     if (!options.CodexSecurity) assertSupportedRuntime();
     const module = options.CodexSecurity ? null : await import('@openai/codex-security');
     const CodexSecurity = options.CodexSecurity || module?.CodexSecurity;
     if (!CodexSecurity) throw new Error('The @openai/codex-security SDK does not export CodexSecurity.');
-    const scannerFactory = options.scannerFactory || ((Ctor) => new Ctor());
-    scanner = await scannerFactory(CodexSecurity);
+    const scannerFactory = options.scannerFactory || ((Ctor, config) => new Ctor(config));
+    scanner = await scannerFactory(CodexSecurity, { codexOverrides: { model } });
     const result = await scanner.run(targetRoot, options.scanOptions || {});
     const rawFindings = result?.findings?.findings;
     if (!Array.isArray(rawFindings)) throw new Error('Codex Security returned no findings array; scan result cannot be treated as clean.');
@@ -96,6 +98,7 @@ export async function runCodexSecurityScan(targetDir = process.cwd(), phase = 'p
     payload = {
       schemaVersion: '2.0',
       engine: '@openai/codex-security',
+      model,
       phase,
       target: targetRoot,
       status,
@@ -111,6 +114,7 @@ export async function runCodexSecurityScan(targetDir = process.cwd(), phase = 'p
     payload = {
       schemaVersion: '2.0',
       engine: '@openai/codex-security',
+      model,
       phase,
       target: targetRoot,
       status: 'failed',
