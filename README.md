@@ -16,6 +16,8 @@ Graph Propagate is a fork of [Reversa](https://github.com/sandeco/reversa) that 
 | Repo used for migration, and the migrated result (NanoHTTPD) | https://github.com/amany9000/nanohttpd |
 | Migration MCP repo | https://github.com/adarshsaraf1234/migration-mcp |
 | Graphify MCP (hosted) | https://migration-mcp-trial-production.up.railway.app/mcp |
+| npm package published URL | https://www.npmjs.com/package/graph-propagate/v/1.4.0
+ |
 
 ---
 
