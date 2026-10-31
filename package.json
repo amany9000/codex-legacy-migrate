@@ -1,6 +1,6 @@
 {
   "name": "graph-propagate",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "Graph-first reverse engineering for legacy systems (Reversa fork with graphify). Codex agents query a graphify knowledge graph of the code before reading files, so analysis runs faster with far fewer tokens. graphify is installed automatically on first run; choose AST (free, local) or semantic graphs.",
   "bin": {
     "reversa": "bin/reversa.js",
